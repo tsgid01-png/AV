@@ -492,13 +492,14 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN -->
+    <!-- TELA DE LOGIN COM SENHA E CADASTRO -->
     <div id="login-container">
         <div class="login-card">
             <h1>Nexus Agenda</h1>
-            <p>Insira seu nome para acessar seu painel pessoal</p>
+            <p>Insira seu nome e senha para acessar ou cadastrar</p>
             <input type="text" id="username-input" class="input-field" placeholder="Seu nome completo..." autocomplete="off">
-            <button class="btn" style="width: 100%;" onclick="handleLogin()">Entrar na Agenda</button>
+            <input type="password" id="password-input" class="input-field" placeholder="Sua senha de acesso..." autocomplete="off">
+            <button class="btn" style="width: 100%;" onclick="handleLogin()">Salvar e Entrar</button>
         </div>
     </div>
 
@@ -619,7 +620,7 @@
                     <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 68vh; overflow: hidden;">
                         <div id="ai-chat-messages" style="flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
                             <div style="background: rgba(99, 102, 241, 0.15); padding: 12px; border-radius: 8px; max-width: 85%; align-self: flex-start; font-size: 14px; line-height: 1.5;">
-                                Olá! Sou o <strong>Vavá</strong>. Analiso, busco, organizo e interpreto tudo o que está registrado na sua agenda, incluindo feriados (como o Carnaval), tarefas com alarmes, notas e diário. O que deseja consultar hoje?
+                                Olá! Sou o <strong>Vavá</strong>. Analiso, busco, organizo e interpreto tudo o que está registrado na sua agenda, incluindo feriados (como o Carnaval associado), tarefas com alarmes, notas e diário. O que deseja consultar hoje?
                             </div>
                         </div>
                         <div style="padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--bg-main);">
@@ -634,6 +635,7 @@
 
     <script>
         let currentUser = localStorage.getItem('nexus_user') || '';
+        let usersDb = JSON.parse(localStorage.getItem('nexus_users_db')) || {};
         let tasks = JSON.parse(localStorage.getItem('nexus_tasks')) || [];
         let notes = JSON.parse(localStorage.getItem('nexus_notes')) || [{id: 1, title: 'Bem-vindo ao Bloco', body: 'Este é o seu espaço de anotações livre.'}];
         let activeNoteId = notes.length > 0 ? notes[0].id : null;
@@ -646,7 +648,7 @@
         let contextTarget = null;
         let longPressTimer = null;
 
-        // Feriados Nacionais e Período de Carnaval Mapeados
+        // Feriados Nacionais e Período de Carnaval Associado no Calendário
         const holidays = {
             "02-16": "Carnaval (Segunda-feira - Ponto Facultativo/Feriado)",
             "02-17": "Carnaval (Terça-feira - Feriado Nacional/Facultativo)",
@@ -669,7 +671,17 @@
 
         function handleLogin() {
             const name = document.getElementById('username-input').value.trim();
-            if (!name) return alert('Insira seu nome.');
+            const pass = document.getElementById('password-input').value.trim();
+            if (!name || !pass) return alert('Insira seu nome e senha para continuar.');
+            
+            // Gerenciamento de cadastro e verificação de senha com persistência total
+            if (usersDb[name] && usersDb[name] !== pass) {
+                return alert('Senha incorreta para este usuário cadastrado.');
+            }
+            
+            usersDb[name] = pass;
+            localStorage.setItem('nexus_users_db', JSON.stringify(usersDb));
+
             currentUser = name;
             localStorage.setItem('nexus_user', name);
             initApp();
