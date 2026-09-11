@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Agenda Virtual & Life Planner</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --holiday: #f59e0b;
+            --alarm: #38bdf8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* TELA DE LOGIN */
+        #login-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+        }
+
+        .login-card h1 {
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .login-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 15px;
+            margin-bottom: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent);
+        }
+
+        .btn {
+            padding: 10px 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* LAYOUT PRINCIPAL */
+        #app-container {
+            display: none;
+            flex: 1;
+            height: 100vh;
+        }
+
+        .app-layout {
+            display: flex;
+            height: 100%;
+            position: relative;
+        }
+
+        /* SIDEBAR RETRÁTIL */
+        sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 16px;
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        sidebar.collapsed {
+            width: 70px;
+            padding: 20px 10px;
+        }
+
+        sidebar.collapsed .user-info-text,
+        sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .avatar {
+            min-width: 36px; width: 36px; height: 36px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-info-text h4 {
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        .toggle-sidebar-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .nav-links li button {
+            width: 100%;
+            padding: 10px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            text-align: left;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-links li button:hover, .nav-links li button.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent);
+        }
+
+        /* CONTEÚDO PRINCIPAL */
+        main {
+            flex: 1;
+            background: var(--bg-main);
+            overflow-y: auto;
+            padding: 24px 32px;
+        }
+
+        .tab-content {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h2.section-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* CALENDÁRIO ORGANIZADO E SEM SOBREPOSIÇÃO */
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .calendar-nav-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .calendar-grid-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            width: 100%;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 12px;
+            padding: 8px 0;
+        }
+
+        .day-cell {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            aspect-ratio: 1 / 1;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .day-cell:hover {
+            border-color: var(--accent);
+        }
+
+        .day-cell.empty {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        .day-cell.holiday-cell {
+            border-color: var(--holiday);
+            background: rgba(245, 158, 11, 0.08);
+        }
+
+        .day-number {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .day-badge {
+            font-size: 9px;
+            background: rgba(245, 158, 11, 0.25);
+            color: var(--holiday);
+            padding: 2px 4px;
+            border-radius: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .day-note-preview {
+            font-size: 9px;
+            background: rgba(99, 102, 241, 0.25);
+            color: var(--accent);
+            padding: 2px 4px;
+            border-radius: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* MODAL DE EDIÇÃO DE DIA */
+        #day-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-card {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--border);
+        }
+
+        /* MENU CONTEXTUAL FLUTUANTE */
+        #context-menu {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 3000;
+            min-width: 160px;
+            overflow: hidden;
+        }
+
+        .context-menu-item {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--text-main);
+            background: transparent;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        .context-menu-item:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--accent);
+        }
+
+        .context-menu-item.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        /* TAREFAS E ALARMES */
+        .task-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .task-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .alarm-badge {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--alarm);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        /* BLOCO DE NOTAS */
+        .notes-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 16px;
+            height: 68vh;
+        }
+
+        .notes-sidebar {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .note-card-item {
+            padding: 10px;
+            background: var(--bg-main);
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+
+        .note-card-item.active {
+            border-color: var(--accent);
+        }
+
+        .notes-editor {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notes-editor input, .notes-editor textarea {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .notes-editor input { font-size: 16px; font-weight: bold; }
+        .notes-editor textarea { resize: none; flex: 1; font-size: 14px; line-height: 1.5; }
+
+        /* DIÁRIO */
+        .diary-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .diary-container textarea {
+            width: 100%;
+            height: 240px;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            padding: 12px;
+            resize: none;
+            outline: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-container">
+        <div class="login-card">
+            <h1>Nexus Agenda</h1>
+            <p>Insira seu nome para acessar seu painel pessoal</p>
+            <input type="text" id="username-input" class="input-field" placeholder="Seu nome completo..." autocomplete="off">
+            <button class="btn" style="width: 100%;" onclick="handleLogin()">Entrar na Agenda</button>
+        </div>
+    </div>
+
+    <!-- MODAL DE EDIÇÃO DE DIA -->
+    <div id="day-modal">
+        <div class="modal-card">
+            <h3 id="modal-date-title" style="margin-bottom: 12px; font-size: 16px;">Editar Dia</h3>
+            <p id="modal-holiday-desc" style="font-size: 12px; color: var(--holiday); margin-bottom: 10px;"></p>
+            <textarea id="modal-day-text" class="input-field" style="height: 100px; resize: none;" placeholder="Escreva notas ou compromissos para este dia..."></textarea>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn" style="background: var(--border);" onclick="closeDayModal()">Cancelar</button>
+                <button class="btn" onclick="saveDayNote()">Salvar Nota</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MENU CONTEXTUAL FLUTUANTE -->
+    <div id="context-menu">
+        <button class="context-menu-item" onclick="ctxCopy()">📋 Copiar Texto</button>
+        <button class="context-menu-item" onclick="ctxPaste()">📄 Colar Texto</button>
+        <button class="context-menu-item danger" onclick="ctxDelete()">🗑️ Excluir Item</button>
+    </div>
+
+    <!-- TELA PRINCIPAL -->
+    <div id="app-container">
+        <div class="app-layout">
+            <sidebar id="sidebar-element">
+                <div class="sidebar-header">
+                    <div class="user-profile">
+                        <div class="avatar" id="user-avatar">N</div>
+                        <div class="user-info-text">
+                            <h4 id="user-display-name">Usuário</h4>
+                            <span style="font-size: 10px; color: var(--text-muted);">Sessão Ativa</span>
+                        </div>
+                    </div>
+                    <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Recolher Menu">☰</button>
+                </div>
+
+                <ul class="nav-links">
+                    <li><button onclick="switchTab('calendar', this)" class="active">📅 <span class="nav-text">Calendário</span></button></li>
+                    <li><button onclick="switchTab('tasks', this)">✅ <span class="nav-text">Tarefas & Alarmes</span></button></li>
+                    <li><button onclick="switchTab('notes', this)">📝 <span class="nav-text">Bloco de Notas</span></button></li>
+                    <li><button onclick="switchTab('diary', this)">📖 <span class="nav-text">Diário Pessoal</span></button></li>
+                    <li><button onclick="switchTab('ai', this)">🤖 <span class="nav-text">Assistente Vavá</span></button></li>
+                </ul>
+                <button class="btn" style="background: var(--danger); margin-top: auto;" onclick="handleLogout()"><span class="nav-text">Sair da Sessão</span></button>
+            </sidebar>
+
+            <main>
+                <!-- ABA CALENDÁRIO -->
+                <div id="tab-calendar" class="tab-content active">
+                    <div class="calendar-nav">
+                        <div class="calendar-nav-buttons">
+                            <button class="btn" style="padding: 6px 12px;" onclick="changeMonth(-1)">◀ Anterior</button>
+                            <button class="btn" style="padding: 6px 12px;" onclick="changeMonth(1)">Próximo ▶</button>
+                        </div>
+                        <h2 id="calendar-month-year" style="font-size: 18px; font-weight: 600;">Mês Ano</h2>
+                        <span style="font-size: 12px; color: var(--text-muted);">Toque simples para anotar | Toque longo para opções</span>
+                    </div>
+
+                    <div class="calendar-grid-container" style="margin-bottom: 6px;">
+                        <div class="weekday">Dom</div>
+                        <div class="weekday">Seg</div>
+                        <div class="weekday">Ter</div>
+                        <div class="weekday">Qua</div>
+                        <div class="weekday">Qui</div>
+                        <div class="weekday">Sex</div>
+                        <div class="weekday">Sáb</div>
+                    </div>
+                    
+                    <div class="calendar-grid-container" id="calendar-days-grid">
+                        <!-- Gerado Dinamicamente -->
+                    </div>
+                </div>
+
+                <!-- ABA TAREFAS E ALARMES -->
+                <div id="tab-tasks" class="tab-content">
+                    <h2 class="section-title">Organizador de Tarefas, Eventos e Alarmes</h2>
+                    <div class="task-controls">
+                        <input type="text" id="task-title" class="input-field" placeholder="Título da tarefa/evento..." style="margin-bottom:0; flex: 2;">
+                        <input type="date" id="task-date" class="input-field" style="width: 150px; margin-bottom:0;">
+                        <input type="time" id="task-time" class="input-field" style="width: 120px; margin-bottom:0;">
+                        <button class="btn" style="width: 110px;" onclick="addTask()">Adicionar</button>
+                    </div>
+                    <div class="task-controls" style="margin-bottom: 16px;">
+                        <input type="text" id="task-filter" class="input-field" placeholder="Filtrar por nome, data ou alarme..." oninput="filterTasks()" style="margin-bottom:0;">
+                    </div>
+                    <div id="task-list-container"></div>
+                </div>
+
+                <!-- ABA NOTAS -->
+                <div id="tab-notes" class="tab-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="section-title" style="margin-bottom:0;">Bloco de Notas</h2>
+                        <button class="btn" onclick="createNewNote()">+ Nova Nota</button>
+                    </div>
+                    <div class="notes-layout">
+                        <div class="notes-sidebar" id="notes-sidebar-list"></div>
+                        <div class="notes-editor">
+                            <input type="text" id="note-title-input" placeholder="Título da nota..." oninput="saveActiveNote()">
+                            <textarea id="note-body-input" placeholder="Escreva sua nota aqui livremente..." oninput="saveActiveNote()"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA DIÁRIO -->
+                <div id="tab-diary" class="tab-content">
+                    <h2 class="section-title">Diário Pessoal</h2>
+                    <div class="diary-container">
+                        <input type="date" id="diary-date" class="input-field" style="width: 180px;" onchange="loadDiaryEntry()">
+                        <textarea id="diary-text" placeholder="Escreva livremente sobre o seu dia aqui..." oninput="saveDiaryEntry()"></textarea>
+                    </div>
+                </div>
+
+                <!-- ABA ASSISTENTE VAVÁ -->
+                <div id="tab-ai" class="tab-content">
+                    <h2 class="section-title">Assistente Vavá (Inteligência da Agenda)</h2>
+                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 68vh; overflow: hidden;">
+                        <div id="ai-chat-messages" style="flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
+                            <div style="background: rgba(99, 102, 241, 0.15); padding: 12px; border-radius: 8px; max-width: 85%; align-self: flex-start; font-size: 14px; line-height: 1.5;">
+                                Olá! Sou o <strong>Vavá</strong>. Analiso, busco, organizo e interpreto tudo o que está registrado na sua agenda, incluindo feriados (como o Carnaval), tarefas com alarmes, notas e diário. O que deseja consultar hoje?
+                            </div>
+                        </div>
+                        <div style="padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--bg-main);">
+                            <input type="text" id="ai-input" class="input-field" placeholder="Ex: Quando é o Carnaval? Resuma minhas tarefas e alarmes..." style="margin-bottom:0;" onkeypress="if(event.key === 'Enter') sendAIMessage()">
+                            <button class="btn" style="width: 100px;" onclick="sendAIMessage()">Perguntar</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = localStorage.getItem('nexus_user') || '';
+        let tasks = JSON.parse(localStorage.getItem('nexus_tasks')) || [];
+        let notes = JSON.parse(localStorage.getItem('nexus_notes')) || [{id: 1, title: 'Bem-vindo ao Bloco', body: 'Este é o seu espaço de anotações livre.'}];
+        let activeNoteId = notes.length > 0 ? notes[0].id : null;
+        let diaryEntries = JSON.parse(localStorage.getItem('nexus_diary')) || {};
+        let dayNotes = JSON.parse(localStorage.getItem('nexus_day_notes')) || {};
+        
+        let currentDate = new Date();
+        let currentEditingDateKey = '';
+        let clipboardData = '';
+        let contextTarget = null;
+        let longPressTimer = null;
+
+        // Feriados Nacionais e Período de Carnaval Mapeados
+        const holidays = {
+            "02-16": "Carnaval (Segunda-feira - Ponto Facultativo/Feriado)",
+            "02-17": "Carnaval (Terça-feira - Feriado Nacional/Facultativo)",
+            "02-18": "Quarta-feira de Cinzas (Início da Quaresma até 14h)",
+            "01-01": "Confraternização Universal (Feriado Nacional)",
+            "04-21": "Tiradentes (Feriado Nacional)",
+            "05-01": "Dia do Trabalho (Feriado Nacional)",
+            "09-07": "Independência do Brasil (Feriado Nacional)",
+            "10-12": "Nossa Sra. Aparecida (Feriado Nacional)",
+            "11-02": "Finados (Feriado Nacional)",
+            "11-15": "Proclamação da República (Feriado Nacional)",
+            "12-25": "Natal (Feriado Nacional)"
+        };
+
+        window.onload = function() {
+            if (currentUser) initApp();
+            document.addEventListener('click', hideContextMenu);
+            setInterval(checkAlarms, 30000); // Checa alarmes a cada 30 segundos
+        };
+
+        function handleLogin() {
+            const name = document.getElementById('username-input').value.trim();
+            if (!name) return alert('Insira seu nome.');
+            currentUser = name;
+            localStorage.setItem('nexus_user', name);
+            initApp();
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('nexus_user');
+            currentUser = '';
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'flex';
+        }
+
+        function initApp() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            document.getElementById('user-display-name').innerText = currentUser;
+            document.getElementById('user-avatar').innerText = currentUser.charAt(0).toUpperCase();
+
+            renderCalendar();
+            renderTasks();
+            renderNotesSidebar();
+            loadActiveNoteContent();
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('diary-date').value = todayStr;
+            loadDiaryEntry();
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar-element').classList.toggle('collapsed');
+        }
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-links button').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        /* CALENDÁRIO */
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-days-grid');
+            grid.innerHTML = '';
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            document.getElementById('calendar-month-year').innerText = `${monthNames[month]} ${year}`;
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell empty';
+                grid.appendChild(emptyCell);
+            }
+
+            for (let d = 1; d <= totalDays; d++) {
+                const mStr = (month + 1) < 10 ? `0${month + 1}` : `${month + 1}`;
+                const dStr = d < 10 ? `0${d}` : `${d}`;
+                const dateKey = `${year}-${mStr}-${dStr}`;
+                const mmdd = `${mStr}-${dStr}`;
+                const holidayDesc = holidays[mmdd];
+                const note = dayNotes[dateKey] || '';
+
+                const cell = document.createElement('div');
+                cell.className = `day-cell ${holidayDesc ? 'holiday-cell' : ''}`;
+                cell.innerHTML = `
+                    <span class="day-number">${d}</span>
+                    ${holidayDesc ? `<div class="day-badge" title="${holidayDesc}">🎭 ${holidayDesc.split(' ')[0]}</div>` : ''}
+                    ${note ? `<div class="day-note-preview" title="${note}">${note}</div>` : ''}
+                `;
+
+                cell.onclick = () => openDayModal(dateKey, d, monthNames[month], year, holidayDesc);
+                addLongPressListener(cell, { type: 'day', dateKey: dateKey });
+
+                grid.appendChild(cell);
+            }
+        }
+
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        function openDayModal(dateKey, dayNum, monthName, year, holidayDesc) {
+            currentEditingDateKey = dateKey;
+            document.getElementById('modal-date-title').innerText = `Data: ${dayNum} de ${monthName} de ${year}`;
+            document.getElementById('modal-holiday-desc').innerText = holidayDesc ? `📅 ${holidayDesc}` : '';
+            document.getElementById('modal-day-text').value = dayNotes[dateKey] || '';
+            document.getElementById('day-modal').style.display = 'flex';
+        }
+
+        function closeDayModal() {
+            document.getElementById('day-modal').style.display = 'none';
+        }
+
+        function saveDayNote() {
+            const text = document.getElementById('modal-day-text').value.trim();
+            if (text) {
+                dayNotes[currentEditingDateKey] = text;
+            } else {
+                delete dayNotes[currentEditingDateKey];
+            }
+            localStorage.setItem('nexus_day_notes', JSON.stringify(dayNotes));
+            closeDayModal();
+            renderCalendar();
+        }
+
+        /* TOQUE E SEGURAR & MENU CONTEXTUAL */
+        function addLongPressListener(element, targetData) {
+            const startPress = (e) => {
+                longPressTimer = setTimeout(() => {
+                    showContextMenu(e, targetData);
+                }, 600);
+            };
+
+            const cancelPress = () => {
+                clearTimeout(longPressTimer);
+            };
+
+            element.addEventListener('touchstart', startPress);
+            element.addEventListener('touchend', cancelPress);
+            element.addEventListener('touchmove', cancelPress);
+            element.addEventListener('mousedown', startPress);
+            element.addEventListener('mouseup', cancelPress);
+            element.addEventListener('mouseleave', cancelPress);
+        }
+
+        function showContextMenu(e, targetData) {
+            e.preventDefault();
+            contextTarget = targetData;
+            const menu = document.getElementById('context-menu');
+            
+            let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            let clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+            menu.style.left = `${clientX || 100}px`;
+            menu.style.top = `${clientY || 100}px`;
+            menu.style.display = 'flex';
+        }
+
+        function hideContextMenu() {
+            document.getElementById('context-menu').style.display = 'none';
+        }
+
+        function ctxCopy() {
+            if (!contextTarget) return;
+            if (contextTarget.type === 'note') {
+                const note = notes.find(n => n.id === contextTarget.id);
+                if (note) clipboardData = `${note.title}\n${note.body}`;
+            } else if (contextTarget.type === 'day') {
+                clipboardData = dayNotes[contextTarget.dateKey] || '';
+            }
+            alert('Conteúdo copiado com sucesso!');
+            hideContextMenu();
+        }
+
+        function ctxPaste() {
+            if (!clipboardData) return alert('A área de transferência está vazia.');
+            if (contextTarget && contextTarget.type === 'note') {
+                const note = notes.find(n => n.id === contextTarget.id);
+                if (note) {
+                    note.body += `\n${clipboardData}`;
+                    localStorage.setItem('nexus_notes', JSON.stringify(notes));
+                    loadActiveNoteContent();
+                }
+            } else if (contextTarget && contextTarget.type === 'day') {
+                dayNotes[contextTarget.dateKey] = (dayNotes[contextTarget.dateKey] || '') + `\n${clipboardData}`;
+                localStorage.setItem('nexus_day_notes', JSON.stringify(dayNotes));
+                renderCalendar();
+            }
+            alert('Conteúdo colado com sucesso!');
+            hideContextMenu();
+        }
+
+        function ctxDelete() {
+            if (!contextTarget) return;
+            if (confirm('Deseja realmente excluir este item?')) {
+                if (contextTarget.type === 'note') {
+                    notes = notes.filter(n => n.id !== contextTarget.id);
+                    if (activeNoteId === contextTarget.id) {
+                        activeNoteId = notes.length > 0 ? notes[0].id : null;
+                    }
+                    localStorage.setItem('nexus_notes', JSON.stringify(notes));
+                    renderNotesSidebar();
+                    loadActiveNoteContent();
+                } else if (contextTarget.type === 'day') {
+                    delete dayNotes[contextTarget.dateKey];
+                    localStorage.setItem('nexus_day_notes', JSON.stringify(dayNotes));
+                    renderCalendar();
+                }
+            }
+            hideContextMenu();
+        }
+
+        /* TAREFAS E ALARMES */
+        function addTask() {
+            const title = document.getElementById('task-title').value.trim();
+            const date = document.getElementById('task-date').value;
+            const time = document.getElementById('task-time').value;
+            if (!title) return alert('Insira um título para a tarefa ou evento.');
+
+            tasks.push({ 
+                id: Date.now(), 
+                title, 
+                date: date || 'Sem data', 
+                time: time || '', 
+                completed: false,
+                notified: false
+            });
+            localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-date').value = '';
+            document.getElementById('task-time').value = '';
+            renderTasks();
+        }
+
+        function renderTasks(filterText = '') {
+            const container = document.getElementById('task-list-container');
+            container.innerHTML = '';
+            let filtered = tasks.filter(t => t.title.toLowerCase().includes(filterText.toLowerCase()) || t.date.includes(filterText) || t.time.includes(filterText));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); text-align:center; padding: 20px;">Nenhuma tarefa ou alarme encontrado.</p>`;
+                return;
+            }
+
+            filtered.forEach(t => {
+                container.innerHTML += `
+                    <div class="task-item">
+                        <div>
+                            <h4 style="font-size:14px; ${t.completed ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${t.title}</h4>
+                            <span style="font-size:11px; color: var(--text-muted);">📅 ${t.date}</span>
+                            ${t.time ? `<span class="alarm-badge">⏰ ${t.time}</span>` : ''}
+                        </div>
+                        <div>
+                            <button class="btn" style="padding: 6px 10px; font-size: 11px; background: ${t.completed ? '#475569' : 'var(--success)'}; margin-right: 4px;" onclick="toggleTask(${t.id})">${t.completed ? 'Desfazer' : 'Concluir'}</button>
+                            <button class="btn" style="padding: 6px 10px; font-size: 11px; background: var(--danger);" onclick="deleteTask(${t.id})">Excluir</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterTasks() {
+            renderTasks(document.getElementById('task-filter').value);
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+            localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
+            renderTasks(document.getElementById('task-filter').value);
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
+            renderTasks(document.getElementById('task-filter').value);
+        }
+
+        function checkAlarms() {
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const currentTimeStr = `${hours}:${minutes}`;
+
+            tasks.forEach(t => {
+                if (!t.completed && !t.notified && t.date === todayStr && t.time === currentTimeStr) {
+                    alert(`⏰ ALARME / LEMBRETE VAVÁ:\n\n"${t.title}" está agendado para agora (${t.time})!`);
+                    t.notified = true;
+                    localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
+                }
+            });
+        }
+
+        /* BLOCO DE NOTAS */
+        function renderNotesSidebar() {
+            const sidebar = document.getElementById('notes-sidebar-list');
+            sidebar.innerHTML = '';
+            notes.forEach(n => {
+                const item = document.createElement('div');
+                item.className = `note-card-item ${n.id === activeNoteId ? 'active' : ''}`;
+                item.innerHTML = `
+                    <strong style="font-size: 12px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${n.title || 'Sem título'}</strong>
+                    <span style="font-size: 10px; color: var(--text-muted);">${n.body.substring(0, 20)}...</span>
+                `;
+                item.onclick = () => selectNote(n.id);
+                addLongPressListener(item, { type: 'note', id: n.id });
+                sidebar.appendChild(item);
+            });
+        }
+
+        function createNewNote() {
+            const newN = { id: Date.now(), title: 'Nova Nota', body: '' };
+            notes.unshift(newN);
+            activeNoteId = newN.id;
+            localStorage.setItem('nexus_notes', JSON.stringify(notes));
+            renderNotesSidebar();
+            loadActiveNoteContent();
+        }
+
+        function selectNote(id) {
+            activeNoteId = id;
+            renderNotesSidebar();
+            loadActiveNoteContent();
+        }
+
+        function loadActiveNoteContent() {
+            const active = notes.find(n => n.id === activeNoteId);
+            document.getElementById('note-title-input').value = active ? active.title : '';
+            document.getElementById('note-body-input').value = active ? active.body : '';
+        }
+
+        function saveActiveNote() {
+            const title = document.getElementById('note-title-input').value;
+            const body = document.getElementById('note-body-input').value;
+            notes = notes.map(n => n.id === activeNoteId ? {...n, title, body} : n);
+            localStorage.setItem('nexus_notes', JSON.stringify(notes));
+            renderNotesSidebar();
+        }
+
+        /* DIÁRIO */
+        function loadDiaryEntry() {
+            const date = document.getElementById('diary-date').value;
+            document.getElementById('diary-text').value = diaryEntries[date] || '';
+        }
+
+        function saveDiaryEntry() {
+            const date = document.getElementById('diary-date').value;
+            diaryEntries[date] = document.getElementById('diary-text').value;
+            localStorage.setItem('nexus_diary', JSON.stringify(diaryEntries));
+        }
+
+        /* ASSISTENTE VAVÁ (BUSCA, ORGANIZA, DETALHA E INTERPRETA TUDO) */
+        function sendAIMessage() {
+            const input = document.getElementById('ai-input');
+            const query = input.value.trim();
+            if (!query) return;
+
+            const chatContainer = document.getElementById('ai-chat-messages');
+            
+            chatContainer.innerHTML += `
+                <div style="background: var(--accent); color: white; padding: 12px; border-radius: 8px; max-width: 85%; align-self: flex-end; font-size: 14px; word-break: break-word;">
+                    ${escapeHtml(query)}
+                </div>
+            `;
+            input.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            setTimeout(() => {
+                const responseText = processAIQuery(query);
+                chatContainer.innerHTML += `
+                    <div style="background: rgba(99, 102, 241, 0.15); padding: 14px; border-radius: 8px; max-width: 88%; align-self: flex-start; font-size: 14px; line-height: 1.6; word-break: break-word;">
+                        ${responseText}
+                    </div>
+                `;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 400);
+        }
+
+        function processAIQuery(query) {
+            const q = query.toLowerCase();
+
+            // 1. Consulta sobre Feriados e Carnaval
+            if (q.includes('carnaval') || q.includes('feriado') || q.includes('data comemorativa') || q.includes('comemorativ')) {
+                let list = "🎭 **Feriados e Período de Carnaval Cadastrados no Sistema:**<br>";
+                const entries = Object.entries(holidays);
+                if (entries.length === 0) return "Nenhum feriado cadastrado.";
+                entries.forEach(([date, desc]) => {
+                    list += `• <b>${date}</b>: ${desc}<br>`;
+                });
+                return list + "<br>Estes dias aparecem destacados no seu calendário e o Carnaval já está associado!";
+            }
+
+            // 2. Consulta sobre Tarefas e Alarmes
+            if (q.includes('tarefa') || q.includes('compromisso') || q.includes('alarme') || q.includes('fazer')) {
+                if (tasks.length === 0) return "📋 Você não possui nenhuma tarefa ou alarme cadastrado no momento.";
+                let pending = tasks.filter(t => !t.completed).length;
+                let res = `📋 **Organizador de Tarefas e Alarmes (${tasks.length} total | ${pending} pendentes):**<br>`;
+                tasks.forEach(t => {
+                    res += `• [${t.completed ? '✅ Concluída' : '⏳ Pendente'}] <b>${t.title}</b> (${t.date} ${t.time ? '⏰ ' + t.time : ''})<br>`;
+                });
+                return res;
+            }
+
+            // 3. Consulta sobre Notas (Bloco de Notas)
+            if (q.includes('nota') || q.includes('bloco') || q.includes('anotação')) {
+                if (notes.length === 0) return "📝 Seu bloco de notas está vazio.";
+                let res = `📝 **Bloco de Notas (${notes.length} notas):**<br>`;
+                notes.forEach(n => {
+                    res += `• <b>${n.title || 'Sem Título'}</b>: ${n.body ? n.body.substring(0, 60) + '...' : '(vazio)'}<br>`;
+                });
+                return res + "<br>Dica: Use o toque longo em qualquer nota para copiar, colar ou excluir.";
+            }
+
+            // 4. Consulta sobre Diário Pessoal
+            if (q.includes('diário') || q.includes('diario') || q.includes('dia')) {
+                const diaryKeys = Object.keys(diaryEntries);
+                if (diaryKeys.length === 0) return "📖 Você ainda não registrou entradas no seu Diário Pessoal.";
+                let res = `📖 **Registros do Diário Pessoal (${diaryKeys.length} dias):**<br>`;
+                diaryKeys.forEach(date => {
+                    res += `• <b>${date}</b>: ${diaryEntries[date].substring(0, 80)}...<br>`;
+                });
+                return res;
+            }
+
+            // 5. Consulta sobre Notas Específicas de Dias no Calendário
+            if (q.includes('calendário') || q.includes('calendario') || q.includes('anotações de dias')) {
+                const dayKeys = Object.keys(dayNotes);
+                if (dayKeys.length === 0) return "📅 Não há notas avulsas salvas diretamente nos dias do calendário.";
+                let res = `📅 **Notas Vinculadas aos Dias do Calendário:**<br>`;
+                dayKeys.forEach(dk => {
+                    res += `• <b>${dk}</b>: ${dayNotes[dk]}<br>`;
+                });
+                return res;
+            }
+
+            // 6. Resumo Geral / Interpretação Completa
+            if (q.includes('resumo') || q.includes('tudo') || q.includes('geral') || q.includes('agenda') || q.includes('analise')) {
+                let pendingTasks = tasks.filter(t => !t.completed).length;
+                let diaryCount = Object.keys(diaryEntries).length;
+                let dayNotesCount = Object.keys(dayNotes).length;
+
+                return `📊 **Resumo Analítico Completo da Agenda (${currentUser}) por Vavá:**<br>
+                • <b>Tarefas & Alarmes:</b> ${tasks.length} cadastradas (${pendingTasks} pendentes).<br>
+                • <b>Bloco de Notas:</b> ${notes.length} notas ativas.<br>
+                • <b>Diário Pessoal:</b> ${diaryCount} registros salvos.<br>
+                • <b>Calendário:</b> Feriados (incluindo Carnaval) mapeados e ${dayNotesCount} anotações em dias específicos.<br><br>
+                Como Vavá, posso detalhar qualquer uma dessas seções para você! O que gostaria de buscar ou organizar?`;
+            }
+
+            // 7. Busca Inteligente por Palavra-Chave em Tudo
+            let matches = [];
+            
+            tasks.forEach(t => {
+                if (t.title.toLowerCase().includes(q)) matches.push(`Tarefa/Alarme: ${t.title} (${t.date} ${t.time})`);
+            });
+            notes.forEach(n => {
+                if (n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q)) matches.push(`Nota: ${n.title}`);
+            });
+            Object.entries(diaryEntries).forEach(([date, text]) => {
+                if (text.toLowerCase().includes(q)) matches.push(`Diário (${date})`);
+            });
+
+            if (matches.length > 0) {
+                let res = `🔍 **Resultados encontrados por Vavá para "${query}":**<br>`;
+                matches.forEach(m => res += `• ${m}<br>`);
+                return res;
+            }
+
+            // Resposta Padrão / Orientativa
+            return `Compreendi sua busca sobre "${query}", ${currentUser}. Sou o <b>Vavá</b> e posso buscar informações detalhadas sobre o <b>Carnaval e feriados</b>, suas <b>tarefas com alarmes</b>, <b>bloco de notas</b>, <b>diário</b> ou fazer um <b>resumo geral</b>. Tente perguntar: "Quando é o Carnaval?", "Resuma minhas tarefas" ou digite uma palavra-chave!`;
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
