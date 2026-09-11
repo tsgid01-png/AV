@@ -298,6 +298,12 @@
             background: rgba(245, 158, 11, 0.08);
         }
 
+        /* DESTAQUE VERDE PARA DIAS COM ANOTAÇÃO DO USUÁRIO */
+        .day-cell.has-note-cell {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.12);
+        }
+
         .day-number {
             font-size: 13px;
             font-weight: 600;
@@ -317,8 +323,8 @@
 
         .day-note-preview {
             font-size: 9px;
-            background: rgba(99, 102, 241, 0.25);
-            color: var(--accent);
+            background: rgba(34, 197, 94, 0.25);
+            color: var(--success);
             padding: 2px 4px;
             border-radius: 4px;
             overflow: hidden;
@@ -620,7 +626,7 @@
                     <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 68vh; overflow: hidden;">
                         <div id="ai-chat-messages" style="flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
                             <div style="background: rgba(99, 102, 241, 0.15); padding: 12px; border-radius: 8px; max-width: 85%; align-self: flex-start; font-size: 14px; line-height: 1.5;">
-                                Olá! Sou o <strong>Vavá</strong>. Analiso, busco, organizo e interpreto tudo o que está registrado na sua agenda, incluindo feriados (como o Carnaval associado), tarefas com alarmes, notas e diário. O que deseja consultar hoje?
+                                Olá! Sou o <strong>Vavá</strong>. Analiso, busco, organizo e interpreto tudo o que está registrado na sua agenda, incluindo feriados, tarefas com alarmes, notas e diário. O que deseja consultar hoje?
                             </div>
                         </div>
                         <div style="padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--bg-main);">
@@ -666,7 +672,7 @@
         window.onload = function() {
             if (currentUser) initApp();
             document.addEventListener('click', hideContextMenu);
-            setInterval(checkAlarms, 30000); // Checa alarmes a cada 30 segundos
+            setInterval(checkAlarms, 30000);
         };
 
         function handleLogin() {
@@ -674,7 +680,6 @@
             const pass = document.getElementById('password-input').value.trim();
             if (!name || !pass) return alert('Insira seu nome e senha para continuar.');
             
-            // Gerenciamento de cadastro e verificação de senha com persistência total
             if (usersDb[name] && usersDb[name] !== pass) {
                 return alert('Senha incorreta para este usuário cadastrado.');
             }
@@ -748,13 +753,14 @@
                 const mmdd = `${mStr}-${dStr}`;
                 const holidayDesc = holidays[mmdd];
                 const note = dayNotes[dateKey] || '';
+                const hasNote = note.trim().length > 0;
 
                 const cell = document.createElement('div');
-                cell.className = `day-cell ${holidayDesc ? 'holiday-cell' : ''}`;
+                cell.className = `day-cell ${holidayDesc ? 'holiday-cell' : ''} ${hasNote ? 'has-note-cell' : ''}`;
                 cell.innerHTML = `
                     <span class="day-number">${d}</span>
                     ${holidayDesc ? `<div class="day-badge" title="${holidayDesc}">🎭 ${holidayDesc.split(' ')[0]}</div>` : ''}
-                    ${note ? `<div class="day-note-preview" title="${note}">${note}</div>` : ''}
+                    ${hasNote ? `<div class="day-note-preview" title="${note}">${note}</div>` : ''}
                 `;
 
                 cell.onclick = () => openDayModal(dateKey, d, monthNames[month], year, holidayDesc);
@@ -1019,7 +1025,7 @@
             localStorage.setItem('nexus_diary', JSON.stringify(diaryEntries));
         }
 
-        /* ASSISTENTE VAVÁ (BUSCA, ORGANIZA, DETALHA E INTERPRETA TUDO) */
+        /* ASSISTENTE VAVÁ */
         function sendAIMessage() {
             const input = document.getElementById('ai-input');
             const query = input.value.trim();
@@ -1049,7 +1055,6 @@
         function processAIQuery(query) {
             const q = query.toLowerCase();
 
-            // 1. Consulta sobre Feriados e Carnaval
             if (q.includes('carnaval') || q.includes('feriado') || q.includes('data comemorativa') || q.includes('comemorativ')) {
                 let list = "🎭 **Feriados e Período de Carnaval Cadastrados no Sistema:**<br>";
                 const entries = Object.entries(holidays);
@@ -1060,7 +1065,6 @@
                 return list + "<br>Estes dias aparecem destacados no seu calendário e o Carnaval já está associado!";
             }
 
-            // 2. Consulta sobre Tarefas e Alarmes
             if (q.includes('tarefa') || q.includes('compromisso') || q.includes('alarme') || q.includes('fazer')) {
                 if (tasks.length === 0) return "📋 Você não possui nenhuma tarefa ou alarme cadastrado no momento.";
                 let pending = tasks.filter(t => !t.completed).length;
@@ -1071,7 +1075,6 @@
                 return res;
             }
 
-            // 3. Consulta sobre Notas (Bloco de Notas)
             if (q.includes('nota') || q.includes('bloco') || q.includes('anotação')) {
                 if (notes.length === 0) return "📝 Seu bloco de notas está vazio.";
                 let res = `📝 **Bloco de Notas (${notes.length} notas):**<br>`;
@@ -1081,7 +1084,6 @@
                 return res + "<br>Dica: Use o toque longo em qualquer nota para copiar, colar ou excluir.";
             }
 
-            // 4. Consulta sobre Diário Pessoal
             if (q.includes('diário') || q.includes('diario') || q.includes('dia')) {
                 const diaryKeys = Object.keys(diaryEntries);
                 if (diaryKeys.length === 0) return "📖 Você ainda não registrou entradas no seu Diário Pessoal.";
@@ -1092,18 +1094,16 @@
                 return res;
             }
 
-            // 5. Consulta sobre Notas Específicas de Dias no Calendário
             if (q.includes('calendário') || q.includes('calendario') || q.includes('anotações de dias')) {
                 const dayKeys = Object.keys(dayNotes);
                 if (dayKeys.length === 0) return "📅 Não há notas avulsas salvas diretamente nos dias do calendário.";
-                let res = `📅 **Notas Vinculadas aos Dias do Calendário:**<br>`;
+                let res = `📅 **Notas Vinculadas aos Dias do Calendário (Destacadas em verde):**<br>`;
                 dayKeys.forEach(dk => {
                     res += `• <b>${dk}</b>: ${dayNotes[dk]}<br>`;
                 });
                 return res;
             }
 
-            // 6. Resumo Geral / Interpretação Completa
             if (q.includes('resumo') || q.includes('tudo') || q.includes('geral') || q.includes('agenda') || q.includes('analise')) {
                 let pendingTasks = tasks.filter(t => !t.completed).length;
                 let diaryCount = Object.keys(diaryEntries).length;
@@ -1113,11 +1113,10 @@
                 • <b>Tarefas & Alarmes:</b> ${tasks.length} cadastradas (${pendingTasks} pendentes).<br>
                 • <b>Bloco de Notas:</b> ${notes.length} notas ativas.<br>
                 • <b>Diário Pessoal:</b> ${diaryCount} registros salvos.<br>
-                • <b>Calendário:</b> Feriados (incluindo Carnaval) mapeados e ${dayNotesCount} anotações em dias específicos.<br><br>
-                Como Vavá, posso detalhar qualquer uma dessas seções para você! O que gostaria de buscar ou organizar?`;
+                • <b>Calendário:</b> Feriados mapeados e ${dayNotesCount} dias com anotações pessoais (com destaque verde).<br><br>
+                Como Vavá, posso detalhar qualquer uma dessas seções para você!`;
             }
 
-            // 7. Busca Inteligente por Palavra-Chave em Tudo
             let matches = [];
             
             tasks.forEach(t => {
@@ -1136,8 +1135,7 @@
                 return res;
             }
 
-            // Resposta Padrão / Orientativa
-            return `Compreendi sua busca sobre "${query}", ${currentUser}. Sou o <b>Vavá</b> e posso buscar informações detalhadas sobre o <b>Carnaval e feriados</b>, suas <b>tarefas com alarmes</b>, <b>bloco de notas</b>, <b>diário</b> ou fazer um <b>resumo geral</b>. Tente perguntar: "Quando é o Carnaval?", "Resuma minhas tarefas" ou digite uma palavra-chave!`;
+            return `Compreendi sua busca sobre "${query}", ${currentUser}. Sou o <b>Vavá</b> e posso buscar informações detalhadas sobre o <b>Carnaval e feriados</b>, suas <b>tarefas com alarmes</b>, <b>bloco de notas</b>, <b>diário</b> ou fazer um <b>resumo geral</b>.`;
         }
 
         function escapeHtml(unsafe) {
