@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Agenda Virtual & Life Planner</title>
+    <title>Agenda Virtual</title>
     <style>
         :root {
             --bg-main: #0f172a;
@@ -17,6 +17,8 @@
             --success: #22c55e;
             --holiday: #f59e0b;
             --alarm: #38bdf8;
+            --card-green: #15803d;
+            --card-purple: #7e22ce;
         }
 
         * {
@@ -35,10 +37,59 @@
             overflow: hidden;
         }
 
+        /* TELA DE SPLASH ANIMADA COM O CARANGUEJO GLOW */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .crab-logo-container {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: crabPulse 2s infinite ease-in-out;
+        }
+
+        .crab-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.6) 0%, rgba(15, 23, 42, 0) 70%);
+            border-radius: 50%;
+            animation: glowPulse 2s infinite alternate;
+        }
+
+        @keyframes crabPulse {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(0.95); }
+        }
+
+        @keyframes glowPulse {
+            0% { opacity: 0.5; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
         /* TELA DE LOGIN */
         #login-container {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: var(--bg-main);
             display: flex;
             align-items: center;
@@ -110,7 +161,7 @@
 
         .app-layout {
             display: flex;
-            height: 100%;
+            height: calc(100% - 70px);
             position: relative;
         }
 
@@ -153,7 +204,9 @@
         }
 
         .avatar {
-            min-width: 36px; width: 36px; height: 36px;
+            min-width: 36px;
+            width: 36px;
+            height: 36px;
             background: var(--accent);
             border-radius: 50%;
             display: flex;
@@ -206,7 +259,8 @@
             white-space: nowrap;
         }
 
-        .nav-links li button:hover, .nav-links li button.active {
+        .nav-links li button:hover,
+        .nav-links li button.active {
             background: rgba(99, 102, 241, 0.15);
             color: var(--accent);
         }
@@ -235,6 +289,203 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+        }
+
+        /* ESTILO INSPIRADO NO EVERNOTE (HOME DASHBOARD) */
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-user-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dashboard-search {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .dashboard-search input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .dashboard-search span {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .dashboard-action-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .action-card {
+            padding: 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 120px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: transform 0.2s, opacity 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .card-green-bg {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+
+        .card-purple-bg {
+            background: linear-gradient(135deg, #9333ea, #7e22ce);
+        }
+
+        .action-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .quick-shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .shortcut-btn-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 10px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .shortcut-btn-card:hover {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .shortcut-btn-card span:first-child {
+            font-size: 20px;
+        }
+
+        .shortcut-btn-card span:last-child {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .scratchpad-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .scratchpad-section h4 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+
+        .scratchpad-section textarea {
+            width: 100%;
+            height: 90px;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            color: var(--text-main);
+            resize: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        /* BOTTOM NAV BAR (ESTILO APP MOBILE) */
+        .bottom-nav {
+            height: 70px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 16px;
+            z-index: 500;
+        }
+
+        .bottom-nav-item {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .bottom-nav-item.active {
+            color: var(--accent);
+        }
+
+        .bottom-nav-item span:first-child {
+            font-size: 18px;
+        }
+
+        .bottom-fab-ai {
+            width: 48px;
+            height: 48px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            margin-top: -16px;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .bottom-fab-ai:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
         }
 
         /* CALENDÁRIO */
@@ -339,7 +590,10 @@
         /* MODAL DE EDIÇÃO DE DIA */
         #day-modal {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0,0,0,0.6);
             display: none;
             align-items: center;
@@ -428,7 +682,7 @@
             display: grid;
             grid-template-columns: 260px 1fr;
             gap: 16px;
-            height: 68vh;
+            height: 60vh;
         }
 
         .notes-sidebar {
@@ -466,15 +720,25 @@
             position: relative;
         }
 
-        .notes-editor input, .notes-editor textarea {
+        .notes-editor input,
+        .notes-editor textarea {
             background: transparent;
             border: none;
             color: var(--text-main);
             outline: none;
         }
 
-        .notes-editor input { font-size: 16px; font-weight: bold; }
-        .notes-editor textarea { resize: none; flex: 1; font-size: 14px; line-height: 1.5; }
+        .notes-editor input {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .notes-editor textarea {
+            resize: none;
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.5;
+        }
 
         /* BOTÃO "+" DE ANEXO */
         .attachment-btn {
@@ -582,11 +846,34 @@
     </style>
 </head>
 <body>
+    <!-- TELA DE SPLASH COM O CARANGUEJO GLOW -->
+    <div id="splash-screen">
+        <div class="crab-logo-container">
+            <div class="crab-glow"></div>
+            <!-- Vetor estilizado do caranguejo vermelho brilhante -->
+            <svg viewBox="0 0 200 200" width="120" height="120" style="z-index: 2;">
+                <!-- Corpo principal -->
+                <path d="M60 100 C60 65, 140 65, 140 100 C140 135, 60 135, 60 100 Z" fill="#dc2626" />
+                <!-- Olhos -->
+                <circle cx="80" cy="55" r="14" fill="#dc2626" />
+                <circle cx="80" cy="55" r="6" fill="#1e293b" />
+                <circle cx="120" cy="55" r="14" fill="#dc2626" />
+                <circle cx="120" cy="55" r="6" fill="#1e293b" />
+                <!-- Pinças -->
+                <path d="M40 70 Q15 50, 35 30 Q55 50, 45 75 Z" fill="#ef4444" />
+                <path d="M160 70 Q185 50, 165 30 Q145 50, 155 75 Z" fill="#ef4444" />
+                <!-- Boca Sorridente -->
+                <path d="M75 105 Q100 130, 125 105 Z" fill="#1e293b" />
+            </svg>
+        </div>
+        <h2 style="margin-top: 20px; font-size: 22px; font-weight: 600; letter-spacing: 0.5px;">Agenda Virtual</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 6px;">Carregando seu espaço inteligente...</p>
+    </div>
 
     <!-- TELA DE LOGIN COM SENHA E CADASTRO -->
-    <div id="login-container">
+    <div id="login-container" style="display: none;">
         <div class="login-card">
-            <h1>Nexus Agenda</h1>
+            <h1>Agenda Virtual</h1>
             <p>Insira seu nome e senha para acessar ou cadastrar</p>
             <input type="text" id="username-input" class="input-field" placeholder="Seu nome completo..." autocomplete="off">
             <input type="password" id="password-input" class="input-field" placeholder="Sua senha de acesso..." autocomplete="off">
@@ -617,7 +904,7 @@
     <!-- TELA PRINCIPAL -->
     <div id="app-container">
         <div class="app-layout">
-            <sidebar id="sidebar-element">
+            <sidebar id="sidebar-element" style="display: none;">
                 <div class="sidebar-header">
                     <div class="user-profile">
                         <div class="avatar" id="user-avatar">N</div>
@@ -628,9 +915,9 @@
                     </div>
                     <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Recolher Menu">☰</button>
                 </div>
-
                 <ul class="nav-links">
-                    <li><button onclick="switchTab('calendar', this)" class="active">📅 <span class="nav-text">Calendário</span></button></li>
+                    <li><button onclick="switchTab('home', this)" class="active">🏠 <span class="nav-text">Início</span></button></li>
+                    <li><button onclick="switchTab('calendar', this)">📅 <span class="nav-text">Calendário</span></button></li>
                     <li><button onclick="switchTab('tasks', this)">✅ <span class="nav-text">Tarefas & Alarmes</span></button></li>
                     <li><button onclick="switchTab('notes', this)">📝 <span class="nav-text">Bloco de Notas</span></button></li>
                     <li><button onclick="switchTab('diary', this)">📖 <span class="nav-text">Diário Pessoal</span></button></li>
@@ -640,8 +927,62 @@
             </sidebar>
 
             <main>
+                <!-- ABA INÍCIO / DASHBOARD (INSPIRADO NO EVERNOTE) -->
+                <div id="tab-home" class="tab-content active">
+                    <div class="dashboard-header">
+                        <div class="dashboard-user-area">
+                            <div class="avatar" id="home-avatar" style="width: 44px; height: 44px; font-size: 18px;">N</div>
+                            <div>
+                                <h2 id="home-greeting" style="font-size: 20px; font-weight: 600;">Minha Agenda</h2>
+                                <span id="home-date-subtitle" style="font-size: 12px; color: var(--text-muted);">sábado, 12 de setembro de 2026</span>
+                            </div>
+                        </div>
+                        <button class="btn" style="background: var(--bg-card); border: 1px solid var(--border);" onclick="handleLogout()">Sair</button>
+                    </div>
+
+                    <div class="dashboard-search">
+                        <span>🔍</span>
+                        <input type="text" placeholder="Encontre qualquer nota, tarefa ou alarme..." oninput="filterDashboardGlobal(this.value)">
+                    </div>
+
+                    <div class="dashboard-action-cards">
+                        <div class="action-card card-green-bg" onclick="createNewNoteFromHome()">
+                            <h3>+ Nova nota</h3>
+                            <div style="font-size: 36px; align-self: flex-end; opacity: 0.8;">📝</div>
+                        </div>
+                        <div class="action-card card-purple-bg" onclick="switchTab('tasks', document.querySelectorAll('.nav-links button')[2])">
+                            <h3>+ Nova tarefa</h3>
+                            <div style="font-size: 36px; align-self: flex-end; opacity: 0.8;">✅</div>
+                        </div>
+                    </div>
+
+                    <div class="quick-shortcuts-grid">
+                        <div class="shortcut-btn-card" onclick="switchTab('calendar', document.querySelectorAll('.nav-links button')[1])">
+                            <span>📅</span>
+                            <span>Evento</span>
+                        </div>
+                        <div class="shortcut-btn-card" onclick="switchTab('notes', document.querySelectorAll('.nav-links button')[3])">
+                            <span>📓</span>
+                            <span>Caderno</span>
+                        </div>
+                        <div class="shortcut-btn-card" onclick="switchTab('diary', document.querySelectorAll('.nav-links button')[4])">
+                            <span>🎙️</span>
+                            <span>Diário/Voz</span>
+                        </div>
+                        <div class="shortcut-btn-card" onclick="switchTab('ai', document.querySelectorAll('.nav-links button')[5])">
+                            <span>🤖</span>
+                            <span>Vavá IA</span>
+                        </div>
+                    </div>
+
+                    <div class="scratchpad-section">
+                        <h4>Bloco de Rascunhos</h4>
+                        <textarea id="home-scratchpad" placeholder="Comece a escrever rascunhos rápidos aqui..." oninput="saveScratchpad(this.value)"></textarea>
+                    </div>
+                </div>
+
                 <!-- ABA CALENDÁRIO -->
-                <div id="tab-calendar" class="tab-content active">
+                <div id="tab-calendar" class="tab-content">
                     <div class="calendar-nav">
                         <div class="calendar-nav-buttons">
                             <button class="btn" style="padding: 6px 12px;" onclick="changeMonth(-1)">◀ Anterior</button>
@@ -650,7 +991,6 @@
                         <h2 id="calendar-month-year" style="font-size: 18px; font-weight: 600;">Mês Ano</h2>
                         <span style="font-size: 12px; color: var(--text-muted);">Toque simples para anotar | Toque longo para opções</span>
                     </div>
-
                     <div class="calendar-grid-container" style="margin-bottom: 6px;">
                         <div class="weekday">Dom</div>
                         <div class="weekday">Seg</div>
@@ -660,7 +1000,6 @@
                         <div class="weekday">Sex</div>
                         <div class="weekday">Sáb</div>
                     </div>
-                    
                     <div class="calendar-grid-container" id="calendar-days-grid">
                         <!-- Gerado Dinamicamente -->
                     </div>
@@ -722,10 +1061,10 @@
                         <span>Assistente Vavá (Comandos de Voz & Texto Inteligentes)</span>
                         <button id="tts-toggle-btn" class="btn" style="background: var(--bg-card); border: 1px solid var(--border); font-size: 12px; padding: 6px 10px;" onclick="toggleTTS()" title="Ativar/Desativar voz do Vavá">🔊 Voz: Ligada</button>
                     </h2>
-                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 65vh; overflow: hidden;">
+                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 55vh; overflow: hidden;">
                         <div id="ai-chat-messages" style="flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
                             <div style="background: rgba(99, 102, 241, 0.15); padding: 12px; border-radius: 8px; max-width: 85%; align-self: flex-start; font-size: 14px; line-height: 1.5;">
-                                Olá! Sou o <strong>Vavá</strong>. Agora meu sistema de áudio está 100% funcional (com reconhecimento de voz e fala sintetizada)! Posso criar, editar e remover notas ou tarefas por comandos de voz ou texto. O que deseja fazer hoje?
+                                Olá! Sou o <strong>Vavá</strong>. Posso criar, editar e remover notas ou tarefas por comandos de voz ou texto. O que deseja fazer hoje?
                             </div>
                         </div>
                         <div style="padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--bg-main); align-items: center;">
@@ -737,6 +1076,29 @@
                 </div>
             </main>
         </div>
+
+        <!-- BOTTOM NAVIGATION BAR -->
+        <nav class="bottom-nav">
+            <button class="bottom-nav-item active" onclick="switchTabBottom('home', this)">
+                <span>🏠</span>
+                <span>Início</span>
+            </button>
+            <button class="bottom-nav-item" onclick="switchTabBottom('notes', this)">
+                <span>📝</span>
+                <span>Notas</span>
+            </button>
+            <button class="bottom-fab-ai" onclick="switchTabBottom('ai', this)" title="Assistente Vavá">
+                ✦
+            </button>
+            <button class="bottom-nav-item" onclick="switchTabBottom('tasks', this)">
+                <span>✅</span>
+                <span>Tarefas</span>
+            </button>
+            <button class="bottom-nav-item" onclick="switchTabBottom('calendar', this)">
+                <span>📅</span>
+                <span>Agenda</span>
+            </button>
+        </nav>
     </div>
 
     <script>
@@ -747,7 +1109,7 @@
         let activeNoteId = notes.length > 0 ? notes[0].id : null;
         let diaryEntries = JSON.parse(localStorage.getItem('nexus_diary')) || {};
         let dayNotes = JSON.parse(localStorage.getItem('nexus_day_notes')) || {};
-        
+        let scratchpadText = localStorage.getItem('nexus_scratchpad') || '';
         let currentDate = new Date();
         let currentEditingDateKey = '';
         let clipboardData = '';
@@ -770,7 +1132,19 @@
         };
 
         window.onload = function() {
-            if (currentUser) initApp();
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    if (currentUser) {
+                        initApp();
+                    } else {
+                        document.getElementById('login-container').style.display = 'flex';
+                    }
+                }, 600);
+            }, 2000);
+
             document.addEventListener('click', hideContextMenu);
             setInterval(checkAlarms, 30000);
         };
@@ -779,16 +1153,14 @@
             const name = document.getElementById('username-input').value.trim();
             const pass = document.getElementById('password-input').value.trim();
             if (!name || !pass) return alert('Insira seu nome e senha para continuar.');
-            
             if (usersDb[name] && usersDb[name] !== pass) {
                 return alert('Senha incorreta para este usuário cadastrado.');
             }
-            
             usersDb[name] = pass;
             localStorage.setItem('nexus_users_db', JSON.stringify(usersDb));
-
             currentUser = name;
             localStorage.setItem('nexus_user', name);
+            document.getElementById('login-container').style.display = 'none';
             initApp();
         }
 
@@ -800,16 +1172,21 @@
         }
 
         function initApp() {
-            document.getElementById('login-container').style.display = 'none';
             document.getElementById('app-container').style.display = 'block';
             document.getElementById('user-display-name').innerText = currentUser;
             document.getElementById('user-avatar').innerText = currentUser.charAt(0).toUpperCase();
+            document.getElementById('home-avatar').innerText = currentUser.charAt(0).toUpperCase();
+            document.getElementById('home-greeting').innerText = `Agenda Virtual (${currentUser})`;
+            
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('home-date-subtitle').innerText = new Date().toLocaleDateString('pt-BR', options);
+            document.getElementById('home-scratchpad').value = scratchpadText;
 
             renderCalendar();
             renderTasks();
             renderNotesSidebar();
             loadActiveNoteContent();
-            
+
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('diary-date').value = todayStr;
             loadDiaryEntry();
@@ -823,17 +1200,38 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-links button').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
-            btnElement.classList.add('active');
+            if (btnElement) btnElement.classList.add('active');
+        }
+
+        function switchTabBottom(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            if (btnElement) btnElement.classList.add('active');
+        }
+
+        function saveScratchpad(text) {
+            scratchpadText = text;
+            localStorage.setItem('nexus_scratchpad', text);
+        }
+
+        function createNewNoteFromHome() {
+            createNewNote('Rascunho Rápido', 'Criado direto da tela inicial.');
+            switchTab('notes', document.querySelectorAll('.nav-links button')[3]);
+        }
+
+        function filterDashboardGlobal(query) {
+            if (query.length > 2) {
+                console.log('Pesquisando por:', query);
+            }
         }
 
         /* CALENDÁRIO */
         function renderCalendar() {
             const grid = document.getElementById('calendar-days-grid');
             grid.innerHTML = '';
-
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-
             const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
             document.getElementById('calendar-month-year').innerText = `${monthNames[month]} ${year}`;
 
@@ -866,10 +1264,8 @@
                     ${holidayDesc ? `<div class="day-badge" title="${holidayDesc}">🎭 ${holidayDesc.split(' ')[0]}</div>` : ''}
                     ${hasNote ? `<div class="day-note-preview" title="${note}">${note}</div>` : ''}
                 `;
-
                 cell.onclick = () => openDayModal(dateKey, d, monthNames[month], year, holidayDesc);
                 addLongPressListener(cell, { type: 'day', dateKey: dateKey });
-
                 grid.appendChild(cell);
             }
         }
@@ -910,11 +1306,9 @@
                     showContextMenu(e, targetData);
                 }, 600);
             };
-
             const cancelPress = () => {
                 clearTimeout(longPressTimer);
             };
-
             element.addEventListener('touchstart', startPress);
             element.addEventListener('touchend', cancelPress);
             element.addEventListener('touchmove', cancelPress);
@@ -927,10 +1321,8 @@
             e.preventDefault();
             contextTarget = targetData;
             const menu = document.getElementById('context-menu');
-            
             let clientX = e.clientX || (e.touches && e.touches[0].clientX);
             let clientY = e.clientY || (e.touches && e.touches[0].clientY);
-
             menu.style.left = `${clientX || 100}px`;
             menu.style.top = `${clientY || 100}px`;
             menu.style.display = 'flex';
@@ -995,17 +1387,19 @@
             const title = titleOverride || document.getElementById('task-title').value.trim();
             const date = dateOverride || document.getElementById('task-date').value;
             const time = timeOverride || document.getElementById('task-time').value;
+
             if (!title) return alert('Insira um título para a tarefa ou evento.');
 
-            tasks.push({ 
-                id: Date.now(), 
-                title, 
-                date: date || 'Sem data', 
-                time: time || '', 
+            tasks.push({
+                id: Date.now(),
+                title,
+                date: date || 'Sem data',
+                time: time || '',
                 completed: false,
                 notified: false
             });
             localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
+
             if (!titleOverride) {
                 document.getElementById('task-title').value = '';
                 document.getElementById('task-date').value = '';
@@ -1124,17 +1518,12 @@
         function handleFileAttachment(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const active = notes.find(n => n.id === activeNoteId);
                 if (active) {
                     if (!active.attachments) active.attachments = [];
-                    active.attachments.push({
-                        name: file.name,
-                        type: file.type,
-                        data: e.target.result
-                    });
+                    active.attachments.push({ name: file.name, type: file.type, data: e.target.result });
                     localStorage.setItem('nexus_notes', JSON.stringify(notes));
                     renderAttachmentsPreview(active.attachments);
                 }
@@ -1147,7 +1536,6 @@
             const container = document.getElementById('note-attachments-preview');
             container.innerHTML = '';
             if (!attachments || attachments.length === 0) return;
-
             attachments.forEach((att, idx) => {
                 let isImage = att.type && att.type.startsWith('image/');
                 container.innerHTML += `
@@ -1169,7 +1557,7 @@
             }
         }
 
-        /* DIÁRIO E DITADO POR VOZ (PADRÃO RESPONSIVO IDÊNTICO À IA VAVÁ) */
+        /* DIÁRIO E DITADO POR VOZ */
         function loadDiaryEntry() {
             const date = document.getElementById('diary-date').value;
             document.getElementById('diary-text').value = diaryEntries[date] || '';
@@ -1188,7 +1576,6 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const rec = new SpeechRecognition();
             rec.lang = 'pt-BR';
-            
             const btn = document.getElementById('dictate-toggle-btn');
             btn.classList.add('recording');
             btn.innerText = '🎙️ Ouvindo...';
@@ -1199,12 +1586,10 @@
                 diaryTextarea.value += (diaryTextarea.value ? ' ' : '') + text;
                 saveDiaryEntry();
             };
-            
             rec.onerror = (e) => {
                 console.error('Erro no reconhecimento de voz:', e.error);
                 alert('Não foi possível capturar o áudio. Tente novamente.');
             };
-
             rec.onend = () => {
                 btn.classList.remove('recording');
                 btn.innerText = '🎙️ Ditar por Voz';
@@ -1219,7 +1604,7 @@
             }
         }
 
-        /* TEXT-TO-SPEECH (VOZ DO VAVÁ FALAR ALTO) */
+        /* TEXT-TO-SPEECH (VOZ DO VAVÁ) */
         function toggleTTS() {
             ttsEnabled = !ttsEnabled;
             const btn = document.getElementById('tts-toggle-btn');
@@ -1236,7 +1621,6 @@
         function speakText(text) {
             if (!ttsEnabled || !('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
-            
             const cleanText = text.replace(/<[^>]*>?/gm, '');
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = 'pt-BR';
@@ -1245,7 +1629,7 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        /* ASSISTENTE VAVÁ (COMANDOS DE VOZ & TEXTO INTELIGENTES CRUD) */
+        /* ASSISTENTE VAVÁ */
         function startAIDictation() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 return alert('Seu navegador não suporta reconhecimento de voz.');
@@ -1253,15 +1637,13 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const rec = new SpeechRecognition();
             rec.lang = 'pt-BR';
-            
             alert('🎙️ Vavá está ouvindo seu comando...');
-            
+
             rec.onresult = (event) => {
                 const text = event.results[0][0].transcript;
                 document.getElementById('ai-input').value = text;
                 sendAIMessage();
             };
-            
             rec.onerror = (e) => {
                 alert('Não foi possível capturar o áudio. Tente novamente.');
             };
@@ -1279,7 +1661,6 @@
             if (!query) return;
 
             const chatContainer = document.getElementById('ai-chat-messages');
-            
             chatContainer.innerHTML += `
                 <div style="background: var(--accent); color: white; padding: 12px; border-radius: 8px; max-width: 85%; align-self: flex-end; font-size: 14px; word-break: break-word;">
                     ${escapeHtml(query)}
@@ -1296,7 +1677,6 @@
                     </div>
                 `;
                 chatContainer.scrollTop = chatContainer.scrollHeight;
-                
                 speakText(responseText);
             }, 400);
         }
@@ -1307,7 +1687,7 @@
             if (q.startsWith('criar nota') || q.startsWith('nova nota') || q.startsWith('criar anotação')) {
                 let noteTitle = query.replace(/^(criar nota|nova nota|criar anotação)\s*/i, '').trim() || 'Nota do Vavá';
                 createNewNote(noteTitle, 'Criado via assistente Vavá.');
-                switchTab('notes', document.querySelectorAll('.nav-links button')[2]);
+                switchTab('notes', document.querySelectorAll('.nav-links button')[3]);
                 return `✅ Nota <b>"${noteTitle}"</b> criada com sucesso e aberta no seu Bloco de Notas!`;
             }
 
@@ -1329,7 +1709,7 @@
                 let taskTitle = query.replace(/^(criar tarefa|novo compromisso|agendar)\s*/i, '').trim() || 'Tarefa do Vavá';
                 let todayStr = new Date().toISOString().split('T')[0];
                 addTask(taskTitle, todayStr, '');
-                switchTab('tasks', document.querySelectorAll('.nav-links button')[1]);
+                switchTab('tasks', document.querySelectorAll('.nav-links button')[2]);
                 return `✅ Tarefa <b>"${taskTitle}"</b> criada para hoje com sucesso!`;
             }
 
@@ -1360,18 +1740,17 @@
             }
 
             if (q.includes('resumo') || q.includes('tudo') || q.includes('geral')) {
-                return `📊 **Resumo Geral da Agenda (${currentUser}) por Vavá:**<br>
-                • <b>Tarefas:</b> ${tasks.length} cadastradas.<br>
-                • <b>Notas:</b> ${notes.length} ativas.<br>
-                • <b>Diário:</b> ${Object.keys(diaryEntries).length} registros.<br><br>
-                Diga comandos como: <i>"Criar nota Reunião"</i> ou <i>"Apagar nota X"</i> para gerenciar tudo por voz ou texto!`;
+                return `📊 **Resumo Geral da Agenda (${currentUser}) por Vavá:**<br> • <b>Tarefas:</b> ${tasks.length} cadastradas.<br> • <b>Notas:</b> ${notes.length} ativas.<br> • <b>Diário:</b> ${Object.keys(diaryEntries).length} registros.<br><br> Diga comandos como: <i>"Criar nota Reunião"</i> ou <i>"Apagar nota X"</i> para gerenciar tudo por voz ou texto!`;
             }
 
             return `Compreendi seu pedido, ${currentUser}. Sou o <b>Vavá</b>. Posso criar notas ou tarefas instantaneamente se você disser algo como: <i>"Criar nota [título]"</i> ou <i>"Criar tarefa [título]"</i>. O que deseja fazer?`;
         }
 
         function escapeHtml(unsafe) {
-            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;");
         }
     </script>
 </body>
