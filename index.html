@@ -237,7 +237,7 @@
             justify-content: space-between;
         }
 
-        /* CALENDÁRIO ORGANIZADO E SEM SOBREPOSIÇÃO */
+        /* CALENDÁRIO */
         .calendar-nav {
             display: flex;
             align-items: center;
@@ -298,7 +298,6 @@
             background: rgba(245, 158, 11, 0.08);
         }
 
-        /* DESTAQUE VERDE PARA DIAS COM ANOTAÇÃO DO USUÁRIO */
         .day-cell.has-note-cell {
             border-color: var(--success);
             background: rgba(34, 197, 94, 0.12);
@@ -459,6 +458,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            position: relative;
         }
 
         .notes-editor input, .notes-editor textarea {
@@ -471,6 +471,59 @@
         .notes-editor input { font-size: 16px; font-weight: bold; }
         .notes-editor textarea { resize: none; flex: 1; font-size: 14px; line-height: 1.5; }
 
+        /* BOTÃO "+" DE ANEXO */
+        .attachment-btn {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 42px;
+            height: 42px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: none;
+            transition: background 0.2s, transform 0.2s;
+            z-index: 10;
+        }
+
+        .attachment-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        .attachment-preview-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .attachment-thumb {
+            font-size: 11px;
+            background: rgba(99, 102, 241, 0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent);
+        }
+
+        .attachment-thumb img {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
         /* DIÁRIO */
         .diary-container {
             background: var(--bg-card);
@@ -480,11 +533,12 @@
             display: flex;
             flex-direction: column;
             gap: 14px;
+            position: relative;
         }
 
         .diary-container textarea {
             width: 100%;
-            height: 240px;
+            height: 220px;
             background: var(--bg-main);
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -493,6 +547,34 @@
             resize: none;
             outline: none;
             font-size: 14px;
+        }
+
+        .dictate-btn {
+            background: var(--success);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+            touch-action: none;
+            transition: opacity 0.2s;
+        }
+
+        .dictate-btn.recording {
+            background: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
@@ -607,6 +689,10 @@
                         <div class="notes-editor">
                             <input type="text" id="note-title-input" placeholder="Título da nota..." oninput="saveActiveNote()">
                             <textarea id="note-body-input" placeholder="Escreva sua nota aqui livremente..." oninput="saveActiveNote()"></textarea>
+                            <div class="attachment-preview-container" id="note-attachments-preview"></div>
+                            <!-- Botão "+" para incluir arquivos, imagens ou sons -->
+                            <input type="file" id="hidden-file-input" style="display: none;" accept="image/*,audio/*,.pdf,.txt" onchange="handleFileAttachment(event)">
+                            <button class="attachment-btn" title="Incluir imagem, som ou arquivo externo" onclick="document.getElementById('hidden-file-input').click()">+</button>
                         </div>
                     </div>
                 </div>
@@ -615,23 +701,37 @@
                 <div id="tab-diary" class="tab-content">
                     <h2 class="section-title">Diário Pessoal</h2>
                     <div class="diary-container">
-                        <input type="date" id="diary-date" class="input-field" style="width: 180px;" onchange="loadDiaryEntry()">
-                        <textarea id="diary-text" placeholder="Escreva livremente sobre o seu dia aqui..." oninput="saveDiaryEntry()"></textarea>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <input type="date" id="diary-date" class="input-field" style="width: 180px; margin-bottom:0;" onchange="loadDiaryEntry()">
+                            <!-- Botão de Ditado por Voz "🎙️" (Toque e segurar corrigido com pointer events) -->
+                            <button id="dictate-toggle-btn" class="dictate-btn" 
+                                onpointerdown="startDictation(event)" 
+                                onpointerup="stopDictation(event)" 
+                                onpointercancel="stopDictation(event)">
+                                🎙️ Segurar para Ditar
+                            </button>
+                        </div>
+                        <textarea id="diary-text" placeholder="Escreva livremente sobre o seu dia aqui ou mantenha pressionado o botão de voz acima para ditar..." oninput="saveDiaryEntry()"></textarea>
+                        <span style="font-size: 11px; color: var(--text-muted);">Dica: Mantenha o botão verde pressionado para ditar por voz diretamente no seu diário.</span>
                     </div>
                 </div>
 
                 <!-- ABA ASSISTENTE VAVÁ -->
                 <div id="tab-ai" class="tab-content">
-                    <h2 class="section-title">Assistente Vavá (Inteligência da Agenda)</h2>
-                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 68vh; overflow: hidden;">
+                    <h2 class="section-title">
+                        <span>Assistente Vavá (Comandos de Voz & Texto Inteligentes)</span>
+                        <button id="tts-toggle-btn" class="btn" style="background: var(--bg-card); border: 1px solid var(--border); font-size: 12px; padding: 6px 10px;" onclick="toggleTTS()" title="Ativar/Desativar voz do Vavá">🔊 Voz: Ligada</button>
+                    </h2>
+                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 65vh; overflow: hidden;">
                         <div id="ai-chat-messages" style="flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
                             <div style="background: rgba(99, 102, 241, 0.15); padding: 12px; border-radius: 8px; max-width: 85%; align-self: flex-start; font-size: 14px; line-height: 1.5;">
-                                Olá! Sou o <strong>Vavá</strong>. Analiso, busco, organizo e interpreto tudo o que está registrado na sua agenda, incluindo feriados, tarefas com alarmes, notas e diário. O que deseja consultar hoje?
+                                Olá! Sou o <strong>Vavá</strong>. Agora meu sistema de áudio está 100% funcional (com reconhecimento de voz e fala sintetizada)! Posso criar, editar e remover notas ou tarefas por comandos de voz ou texto. O que deseja fazer hoje?
                             </div>
                         </div>
-                        <div style="padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--bg-main);">
-                            <input type="text" id="ai-input" class="input-field" placeholder="Ex: Quando é o Carnaval? Resuma minhas tarefas e alarmes..." style="margin-bottom:0;" onkeypress="if(event.key === 'Enter') sendAIMessage()">
-                            <button class="btn" style="width: 100px;" onclick="sendAIMessage()">Perguntar</button>
+                        <div style="padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--bg-main); align-items: center;">
+                            <input type="text" id="ai-input" class="input-field" placeholder="Digite ou comande o Vavá..." style="margin-bottom:0;" onkeypress="if(event.key === 'Enter') sendAIMessage()">
+                            <button class="btn" style="background: var(--success); padding: 10px 14px;" onclick="startAIDictation()" title="Falar com Vavá por voz">🎙️</button>
+                            <button class="btn" style="width: 100px;" onclick="sendAIMessage()">Enviar</button>
                         </div>
                     </div>
                 </div>
@@ -643,7 +743,7 @@
         let currentUser = localStorage.getItem('nexus_user') || '';
         let usersDb = JSON.parse(localStorage.getItem('nexus_users_db')) || {};
         let tasks = JSON.parse(localStorage.getItem('nexus_tasks')) || [];
-        let notes = JSON.parse(localStorage.getItem('nexus_notes')) || [{id: 1, title: 'Bem-vindo ao Bloco', body: 'Este é o seu espaço de anotações livre.'}];
+        let notes = JSON.parse(localStorage.getItem('nexus_notes')) || [{id: 1, title: 'Bem-vindo ao Bloco', body: 'Este é o seu espaço de anotações livre.', attachments: []}];
         let activeNoteId = notes.length > 0 ? notes[0].id : null;
         let diaryEntries = JSON.parse(localStorage.getItem('nexus_diary')) || {};
         let dayNotes = JSON.parse(localStorage.getItem('nexus_day_notes')) || {};
@@ -653,8 +753,9 @@
         let clipboardData = '';
         let contextTarget = null;
         let longPressTimer = null;
+        let speechRecognitionInstance = null;
+        let ttsEnabled = true;
 
-        // Feriados Nacionais e Período de Carnaval Associado no Calendário
         const holidays = {
             "02-16": "Carnaval (Segunda-feira - Ponto Facultativo/Feriado)",
             "02-17": "Carnaval (Terça-feira - Feriado Nacional/Facultativo)",
@@ -887,10 +988,10 @@
         }
 
         /* TAREFAS E ALARMES */
-        function addTask() {
-            const title = document.getElementById('task-title').value.trim();
-            const date = document.getElementById('task-date').value;
-            const time = document.getElementById('task-time').value;
+        function addTask(titleOverride, dateOverride, timeOverride) {
+            const title = titleOverride || document.getElementById('task-title').value.trim();
+            const date = dateOverride || document.getElementById('task-date').value;
+            const time = timeOverride || document.getElementById('task-time').value;
             if (!title) return alert('Insira um título para a tarefa ou evento.');
 
             tasks.push({ 
@@ -902,9 +1003,11 @@
                 notified: false
             });
             localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
-            document.getElementById('task-title').value = '';
-            document.getElementById('task-date').value = '';
-            document.getElementById('task-time').value = '';
+            if (!titleOverride) {
+                document.getElementById('task-title').value = '';
+                document.getElementById('task-date').value = '';
+                document.getElementById('task-time').value = '';
+            }
             renderTasks();
         }
 
@@ -967,7 +1070,7 @@
             });
         }
 
-        /* BLOCO DE NOTAS */
+        /* BLOCO DE NOTAS & ANEXOS ("+") */
         function renderNotesSidebar() {
             const sidebar = document.getElementById('notes-sidebar-list');
             sidebar.innerHTML = '';
@@ -984,13 +1087,14 @@
             });
         }
 
-        function createNewNote() {
-            const newN = { id: Date.now(), title: 'Nova Nota', body: '' };
+        function createNewNote(titleOverride = 'Nova Nota', bodyOverride = '') {
+            const newN = { id: Date.now(), title: titleOverride, body: bodyOverride, attachments: [] };
             notes.unshift(newN);
             activeNoteId = newN.id;
             localStorage.setItem('nexus_notes', JSON.stringify(notes));
             renderNotesSidebar();
             loadActiveNoteContent();
+            return newN;
         }
 
         function selectNote(id) {
@@ -1003,6 +1107,7 @@
             const active = notes.find(n => n.id === activeNoteId);
             document.getElementById('note-title-input').value = active ? active.title : '';
             document.getElementById('note-body-input').value = active ? active.body : '';
+            renderAttachmentsPreview(active ? active.attachments : []);
         }
 
         function saveActiveNote() {
@@ -1013,7 +1118,55 @@
             renderNotesSidebar();
         }
 
-        /* DIÁRIO */
+        function handleFileAttachment(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const active = notes.find(n => n.id === activeNoteId);
+                if (active) {
+                    if (!active.attachments) active.attachments = [];
+                    active.attachments.push({
+                        name: file.name,
+                        type: file.type,
+                        data: e.target.result
+                    });
+                    localStorage.setItem('nexus_notes', JSON.stringify(notes));
+                    renderAttachmentsPreview(active.attachments);
+                }
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function renderAttachmentsPreview(attachments) {
+            const container = document.getElementById('note-attachments-preview');
+            container.innerHTML = '';
+            if (!attachments || attachments.length === 0) return;
+
+            attachments.forEach((att, idx) => {
+                let isImage = att.type && att.type.startsWith('image/');
+                container.innerHTML += `
+                    <div class="attachment-thumb">
+                        ${isImage ? `<img src="${att.data}">` : '📎'}
+                        <span>${att.name}</span>
+                        <button style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:bold;" onclick="removeAttachment(${idx})">×</button>
+                    </div>
+                `;
+            });
+        }
+
+        function removeAttachment(idx) {
+            const active = notes.find(n => n.id === activeNoteId);
+            if (active && active.attachments) {
+                active.attachments.splice(idx, 1);
+                localStorage.setItem('nexus_notes', JSON.stringify(notes));
+                renderAttachmentsPreview(active.attachments);
+            }
+        }
+
+        /* DIÁRIO E DITADO POR VOZ (BOTÃO 🎙️ CORRIGIDO & ROBUSTO) */
         function loadDiaryEntry() {
             const date = document.getElementById('diary-date').value;
             document.getElementById('diary-text').value = diaryEntries[date] || '';
@@ -1025,7 +1178,121 @@
             localStorage.setItem('nexus_diary', JSON.stringify(diaryEntries));
         }
 
-        /* ASSISTENTE VAVÁ */
+        function startDictation(event) {
+            if (event) event.preventDefault();
+            const btn = document.getElementById('dictate-toggle-btn');
+            
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                return alert('Seu navegador não suporta reconhecimento de voz.');
+            }
+
+            if (speechRecognitionInstance) return; // Já está ouvindo
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            speechRecognitionInstance = new SpeechRecognition();
+            speechRecognitionInstance.lang = 'pt-BR';
+            speechRecognitionInstance.continuous = true;
+            speechRecognitionInstance.interimResults = true;
+
+            btn.classList.add('recording');
+            btn.innerText = '🎙️ Ouvindo... (Solte para parar)';
+
+            speechRecognitionInstance.onresult = (e) => {
+                let transcript = '';
+                for (let i = e.resultIndex; i < e.results.length; ++i) {
+                    transcript += e.results[i][0].transcript;
+                }
+                const diaryTextarea = document.getElementById('diary-text');
+                diaryTextarea.value += (diaryTextarea.value ? ' ' : '') + transcript;
+                saveDiaryEntry();
+            };
+
+            speechRecognitionInstance.onerror = (e) => {
+                console.error('Erro no reconhecimento de voz:', e.error);
+                stopDictation();
+            };
+
+            speechRecognitionInstance.onend = () => {
+                stopDictation();
+            };
+
+            try {
+                speechRecognitionInstance.start();
+            } catch (err) {
+                console.error(err);
+                stopDictation();
+            }
+        }
+
+        function stopDictation(event) {
+            if (event) event.preventDefault();
+            const btn = document.getElementById('dictate-toggle-btn');
+            btn.classList.remove('recording');
+            btn.innerText = '🎙️ Segurar para Ditar';
+            
+            if (speechRecognitionInstance) {
+                try {
+                    speechRecognitionInstance.stop();
+                } catch (e) {}
+                speechRecognitionInstance = null;
+            }
+        }
+
+        /* TEXT-TO-SPEECH (VOZ DO VAVÁ FALAR ALTO) */
+        function toggleTTS() {
+            ttsEnabled = !ttsEnabled;
+            const btn = document.getElementById('tts-toggle-btn');
+            if (ttsEnabled) {
+                btn.innerText = '🔊 Voz: Ligada';
+                btn.style.color = 'var(--success)';
+            } else {
+                btn.innerText = '🔇 Voz: Desligada';
+                btn.style.color = 'var(--danger)';
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function speakText(text) {
+            if (!ttsEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel(); // Cancela falas anteriores pendentes
+            
+            // Remove tags HTML para a fala natural
+            const cleanText = text.replace(/<[^>]*>?/gm, '');
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        /* ASSISTENTE VAVÁ (COMANDOS DE VOZ & TEXTO INTELIGENTES CRUD) */
+        function startAIDictation() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                return alert('Seu navegador não suporta reconhecimento de voz.');
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const rec = new SpeechRecognition();
+            rec.lang = 'pt-BR';
+            
+            alert('🎙️ Vavá está ouvindo seu comando...');
+            
+            rec.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                document.getElementById('ai-input').value = text;
+                sendAIMessage();
+            };
+            
+            rec.onerror = (e) => {
+                alert('Não foi possível capturar o áudio. Tente novamente.');
+            };
+
+            try {
+                rec.start();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
         function sendAIMessage() {
             const input = document.getElementById('ai-input');
             const query = input.value.trim();
@@ -1049,93 +1316,83 @@
                     </div>
                 `;
                 chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Fala a resposta em voz alta se ativado
+                speakText(responseText);
             }, 400);
         }
 
         function processAIQuery(query) {
             const q = query.toLowerCase();
 
-            if (q.includes('carnaval') || q.includes('feriado') || q.includes('data comemorativa') || q.includes('comemorativ')) {
+            // Comando CRUD: Criar Nota
+            if (q.startsWith('criar nota') || q.startsWith('nova nota') || q.startsWith('criar anotação')) {
+                let noteTitle = query.replace(/^(criar nota|nova nota|criar anotação)\s*/i, '').trim() || 'Nota do Vavá';
+                createNewNote(noteTitle, 'Criado via assistente Vavá.');
+                switchTab('notes', document.querySelectorAll('.nav-links button')[2]);
+                return `✅ Nota <b>"${noteTitle}"</b> criada com sucesso e aberta no seu Bloco de Notas!`;
+            }
+
+            // Comando CRUD: Apagar Nota
+            if (q.startsWith('apagar nota') || q.startsWith('remover nota') || q.startsWith('excluir nota')) {
+                let targetTitle = query.replace(/^(apagar nota|remover nota|excluir nota)\s*/i, '').trim().toLowerCase();
+                let found = notes.find(n => n.title.toLowerCase().includes(targetTitle));
+                if (found) {
+                    notes = notes.filter(n => n.id !== found.id);
+                    if (activeNoteId === found.id) activeNoteId = notes.length > 0 ? notes[0].id : null;
+                    localStorage.setItem('nexus_notes', JSON.stringify(notes));
+                    renderNotesSidebar();
+                    loadActiveNoteContent();
+                    return `🗑️ Nota <b>"${found.title}"</b> foi removida com sucesso!`;
+                }
+                return `❌ Não encontrei nenhuma nota com o título correspondente a "${targetTitle}".`;
+            }
+
+            // Comando CRUD: Criar Tarefa
+            if (q.startsWith('criar tarefa') || q.startsWith('novo compromisso') || q.startsWith('agendar')) {
+                let taskTitle = query.replace(/^(criar tarefa|novo compromisso|agendar)\s*/i, '').trim() || 'Tarefa do Vavá';
+                let todayStr = new Date().toISOString().split('T')[0];
+                addTask(taskTitle, todayStr, '');
+                switchTab('tasks', document.querySelectorAll('.nav-links button')[1]);
+                return `✅ Tarefa <b>"${taskTitle}"</b> criada para hoje com sucesso!`;
+            }
+
+            // Consultas Gerais
+            if (q.includes('carnaval') || q.includes('feriado') || q.includes('data comemorativa')) {
                 let list = "🎭 **Feriados e Período de Carnaval Cadastrados no Sistema:**<br>";
-                const entries = Object.entries(holidays);
-                if (entries.length === 0) return "Nenhum feriado cadastrado.";
-                entries.forEach(([date, desc]) => {
+                Object.entries(holidays).forEach(([date, desc]) => {
                     list += `• <b>${date}</b>: ${desc}<br>`;
                 });
-                return list + "<br>Estes dias aparecem destacados no seu calendário e o Carnaval já está associado!";
+                return list;
             }
 
-            if (q.includes('tarefa') || q.includes('compromisso') || q.includes('alarme') || q.includes('fazer')) {
+            if (q.includes('tarefa') || q.includes('compromisso') || q.includes('alarme')) {
                 if (tasks.length === 0) return "📋 Você não possui nenhuma tarefa ou alarme cadastrado no momento.";
-                let pending = tasks.filter(t => !t.completed).length;
-                let res = `📋 **Organizador de Tarefas e Alarmes (${tasks.length} total | ${pending} pendentes):**<br>`;
+                let res = `📋 **Suas Tarefas (${tasks.length}):**<br>`;
                 tasks.forEach(t => {
-                    res += `• [${t.completed ? '✅ Concluída' : '⏳ Pendente'}] <b>${t.title}</b> (${t.date} ${t.time ? '⏰ ' + t.time : ''})<br>`;
+                    res += `• [${t.completed ? '✅ Concluída' : '⏳ Pendente'}] <b>${t.title}</b> (${t.date})<br>`;
                 });
                 return res;
             }
 
-            if (q.includes('nota') || q.includes('bloco') || q.includes('anotação')) {
+            if (q.includes('nota') || q.includes('bloco')) {
                 if (notes.length === 0) return "📝 Seu bloco de notas está vazio.";
-                let res = `📝 **Bloco de Notas (${notes.length} notas):**<br>`;
+                let res = `📝 **Bloco de Notas (${notes.length}):**<br>`;
                 notes.forEach(n => {
-                    res += `• <b>${n.title || 'Sem Título'}</b>: ${n.body ? n.body.substring(0, 60) + '...' : '(vazio)'}<br>`;
-                });
-                return res + "<br>Dica: Use o toque longo em qualquer nota para copiar, colar ou excluir.";
-            }
-
-            if (q.includes('diário') || q.includes('diario') || q.includes('dia')) {
-                const diaryKeys = Object.keys(diaryEntries);
-                if (diaryKeys.length === 0) return "📖 Você ainda não registrou entradas no seu Diário Pessoal.";
-                let res = `📖 **Registros do Diário Pessoal (${diaryKeys.length} dias):**<br>`;
-                diaryKeys.forEach(date => {
-                    res += `• <b>${date}</b>: ${diaryEntries[date].substring(0, 80)}...<br>`;
+                    res += `• <b>${n.title}</b><br>`;
                 });
                 return res;
             }
 
-            if (q.includes('calendário') || q.includes('calendario') || q.includes('anotações de dias')) {
-                const dayKeys = Object.keys(dayNotes);
-                if (dayKeys.length === 0) return "📅 Não há notas avulsas salvas diretamente nos dias do calendário.";
-                let res = `📅 **Notas Vinculadas aos Dias do Calendário (Destacadas em verde):**<br>`;
-                dayKeys.forEach(dk => {
-                    res += `• <b>${dk}</b>: ${dayNotes[dk]}<br>`;
-                });
-                return res;
+            if (q.includes('resumo') || q.includes('tudo') || q.includes('geral')) {
+                return `📊 **Resumo Geral da Agenda (${currentUser}) por Vavá:**<br>
+                • <b>Tarefas:</b> ${tasks.length} cadastradas.<br>
+                • <b>Notas:</b> ${notes.length} ativas.<br>
+                • <b>Diário:</b> ${Object.keys(diaryEntries).length} registros.<br><br>
+                Diga comandos como: <i>"Criar nota Reunião"</i> ou <i>"Apagar nota X"</i> para gerenciar tudo por voz ou texto!`;
             }
 
-            if (q.includes('resumo') || q.includes('tudo') || q.includes('geral') || q.includes('agenda') || q.includes('analise')) {
-                let pendingTasks = tasks.filter(t => !t.completed).length;
-                let diaryCount = Object.keys(diaryEntries).length;
-                let dayNotesCount = Object.keys(dayNotes).length;
-
-                return `📊 **Resumo Analítico Completo da Agenda (${currentUser}) por Vavá:**<br>
-                • <b>Tarefas & Alarmes:</b> ${tasks.length} cadastradas (${pendingTasks} pendentes).<br>
-                • <b>Bloco de Notas:</b> ${notes.length} notas ativas.<br>
-                • <b>Diário Pessoal:</b> ${diaryCount} registros salvos.<br>
-                • <b>Calendário:</b> Feriados mapeados e ${dayNotesCount} dias com anotações pessoais (com destaque verde).<br><br>
-                Como Vavá, posso detalhar qualquer uma dessas seções para você!`;
-            }
-
-            let matches = [];
-            
-            tasks.forEach(t => {
-                if (t.title.toLowerCase().includes(q)) matches.push(`Tarefa/Alarme: ${t.title} (${t.date} ${t.time})`);
-            });
-            notes.forEach(n => {
-                if (n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q)) matches.push(`Nota: ${n.title}`);
-            });
-            Object.entries(diaryEntries).forEach(([date, text]) => {
-                if (text.toLowerCase().includes(q)) matches.push(`Diário (${date})`);
-            });
-
-            if (matches.length > 0) {
-                let res = `🔍 **Resultados encontrados por Vavá para "${query}":**<br>`;
-                matches.forEach(m => res += `• ${m}<br>`);
-                return res;
-            }
-
-            return `Compreendi sua busca sobre "${query}", ${currentUser}. Sou o <b>Vavá</b> e posso buscar informações detalhadas sobre o <b>Carnaval e feriados</b>, suas <b>tarefas com alarmes</b>, <b>bloco de notas</b>, <b>diário</b> ou fazer um <b>resumo geral</b>.`;
+            return `Compreendi seu pedido, ${currentUser}. Sou o <b>Vavá</b>. Posso criar notas ou tarefas instantaneamente se você disser algo como: <i>"Criar nota [título]"</i> ou <i>"Criar tarefa [título]"</i>. O que deseja fazer?`;
         }
 
         function escapeHtml(unsafe) {
