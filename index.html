@@ -561,8 +561,6 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            user-select: none;
-            touch-action: none;
             transition: opacity 0.2s;
         }
 
@@ -703,16 +701,13 @@
                     <div class="diary-container">
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                             <input type="date" id="diary-date" class="input-field" style="width: 180px; margin-bottom:0;" onchange="loadDiaryEntry()">
-                            <!-- Botão de Ditado por Voz "🎙️" (Toque e segurar corrigido com pointer events) -->
-                            <button id="dictate-toggle-btn" class="dictate-btn" 
-                                onpointerdown="startDictation(event)" 
-                                onpointerup="stopDictation(event)" 
-                                onpointercancel="stopDictation(event)">
-                                🎙️ Segurar para Ditar
+                            <!-- Botão de Ditado por Voz configurado igual à IA Vavá -->
+                            <button id="dictate-toggle-btn" class="dictate-btn" onclick="startDiaryDictation()">
+                                🎙️ Ditar por Voz
                             </button>
                         </div>
-                        <textarea id="diary-text" placeholder="Escreva livremente sobre o seu dia aqui ou mantenha pressionado o botão de voz acima para ditar..." oninput="saveDiaryEntry()"></textarea>
-                        <span style="font-size: 11px; color: var(--text-muted);">Dica: Mantenha o botão verde pressionado para ditar por voz diretamente no seu diário.</span>
+                        <textarea id="diary-text" placeholder="Escreva livremente sobre o seu dia aqui ou clique no botão de voz acima para ditar..." oninput="saveDiaryEntry()"></textarea>
+                        <span style="font-size: 11px; color: var(--text-muted);">Dica: Clique no botão verde para ditar por voz diretamente no seu diário com total responsividade.</span>
                     </div>
                 </div>
 
@@ -753,7 +748,6 @@
         let clipboardData = '';
         let contextTarget = null;
         let longPressTimer = null;
-        let speechRecognitionInstance = null;
         let ttsEnabled = true;
 
         const holidays = {
@@ -1166,7 +1160,7 @@
             }
         }
 
-        /* DIÁRIO E DITADO POR VOZ (BOTÃO 🎙️ CORRIGIDO & ROBUSTO) */
+        /* DIÁRIO E DITADO POR VOZ (PADRÃO RESPONSIVO IDÊNTICO À IA VAVÁ) */
         function loadDiaryEntry() {
             const date = document.getElementById('diary-date').value;
             document.getElementById('diary-text').value = diaryEntries[date] || '';
@@ -1178,63 +1172,41 @@
             localStorage.setItem('nexus_diary', JSON.stringify(diaryEntries));
         }
 
-        function startDictation(event) {
-            if (event) event.preventDefault();
-            const btn = document.getElementById('dictate-toggle-btn');
-            
+        function startDiaryDictation() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 return alert('Seu navegador não suporta reconhecimento de voz.');
             }
-
-            if (speechRecognitionInstance) return; // Já está ouvindo
-
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            speechRecognitionInstance = new SpeechRecognition();
-            speechRecognitionInstance.lang = 'pt-BR';
-            speechRecognitionInstance.continuous = true;
-            speechRecognitionInstance.interimResults = true;
-
+            const rec = new SpeechRecognition();
+            rec.lang = 'pt-BR';
+            
+            const btn = document.getElementById('dictate-toggle-btn');
             btn.classList.add('recording');
-            btn.innerText = '🎙️ Ouvindo... (Solte para parar)';
+            btn.innerText = '🎙️ Ouvindo...';
 
-            speechRecognitionInstance.onresult = (e) => {
-                let transcript = '';
-                for (let i = e.resultIndex; i < e.results.length; ++i) {
-                    transcript += e.results[i][0].transcript;
-                }
+            rec.onresult = (event) => {
+                const text = event.results[0][0].transcript;
                 const diaryTextarea = document.getElementById('diary-text');
-                diaryTextarea.value += (diaryTextarea.value ? ' ' : '') + transcript;
+                diaryTextarea.value += (diaryTextarea.value ? ' ' : '') + text;
                 saveDiaryEntry();
             };
-
-            speechRecognitionInstance.onerror = (e) => {
+            
+            rec.onerror = (e) => {
                 console.error('Erro no reconhecimento de voz:', e.error);
-                stopDictation();
+                alert('Não foi possível capturar o áudio. Tente novamente.');
             };
 
-            speechRecognitionInstance.onend = () => {
-                stopDictation();
+            rec.onend = () => {
+                btn.classList.remove('recording');
+                btn.innerText = '🎙️ Ditar por Voz';
             };
 
             try {
-                speechRecognitionInstance.start();
-            } catch (err) {
-                console.error(err);
-                stopDictation();
-            }
-        }
-
-        function stopDictation(event) {
-            if (event) event.preventDefault();
-            const btn = document.getElementById('dictate-toggle-btn');
-            btn.classList.remove('recording');
-            btn.innerText = '🎙️ Segurar para Ditar';
-            
-            if (speechRecognitionInstance) {
-                try {
-                    speechRecognitionInstance.stop();
-                } catch (e) {}
-                speechRecognitionInstance = null;
+                rec.start();
+            } catch(e) {
+                console.error(e);
+                btn.classList.remove('recording');
+                btn.innerText = '🎙️ Ditar por Voz';
             }
         }
 
@@ -1254,9 +1226,8 @@
 
         function speakText(text) {
             if (!ttsEnabled || !('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel(); // Cancela falas anteriores pendentes
+            window.speechSynthesis.cancel();
             
-            // Remove tags HTML para a fala natural
             const cleanText = text.replace(/<[^>]*>?/gm, '');
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = 'pt-BR';
@@ -1317,7 +1288,6 @@
                 `;
                 chatContainer.scrollTop = chatContainer.scrollHeight;
                 
-                // Fala a resposta em voz alta se ativado
                 speakText(responseText);
             }, 400);
         }
@@ -1325,7 +1295,6 @@
         function processAIQuery(query) {
             const q = query.toLowerCase();
 
-            // Comando CRUD: Criar Nota
             if (q.startsWith('criar nota') || q.startsWith('nova nota') || q.startsWith('criar anotação')) {
                 let noteTitle = query.replace(/^(criar nota|nova nota|criar anotação)\s*/i, '').trim() || 'Nota do Vavá';
                 createNewNote(noteTitle, 'Criado via assistente Vavá.');
@@ -1333,7 +1302,6 @@
                 return `✅ Nota <b>"${noteTitle}"</b> criada com sucesso e aberta no seu Bloco de Notas!`;
             }
 
-            // Comando CRUD: Apagar Nota
             if (q.startsWith('apagar nota') || q.startsWith('remover nota') || q.startsWith('excluir nota')) {
                 let targetTitle = query.replace(/^(apagar nota|remover nota|excluir nota)\s*/i, '').trim().toLowerCase();
                 let found = notes.find(n => n.title.toLowerCase().includes(targetTitle));
@@ -1348,7 +1316,6 @@
                 return `❌ Não encontrei nenhuma nota com o título correspondente a "${targetTitle}".`;
             }
 
-            // Comando CRUD: Criar Tarefa
             if (q.startsWith('criar tarefa') || q.startsWith('novo compromisso') || q.startsWith('agendar')) {
                 let taskTitle = query.replace(/^(criar tarefa|novo compromisso|agendar)\s*/i, '').trim() || 'Tarefa do Vavá';
                 let todayStr = new Date().toISOString().split('T')[0];
@@ -1357,7 +1324,6 @@
                 return `✅ Tarefa <b>"${taskTitle}"</b> criada para hoje com sucesso!`;
             }
 
-            // Consultas Gerais
             if (q.includes('carnaval') || q.includes('feriado') || q.includes('data comemorativa')) {
                 let list = "🎭 **Feriados e Período de Carnaval Cadastrados no Sistema:**<br>";
                 Object.entries(holidays).forEach(([date, desc]) => {
