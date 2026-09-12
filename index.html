@@ -303,6 +303,11 @@
             background: rgba(34, 197, 94, 0.12);
         }
 
+        .day-cell.today-cell {
+            border-color: var(--alarm);
+            background: rgba(56, 189, 248, 0.15);
+        }
+
         .day-number {
             font-size: 13px;
             font-weight: 600;
@@ -835,6 +840,9 @@
             const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
 
+            const nowObj = new Date();
+            const todayStr = `${nowObj.getFullYear()}-${String(nowObj.getMonth() + 1).padStart(2, '0')}-${String(nowObj.getDate()).padStart(2, '0')}`;
+
             for (let i = 0; i < firstDayIndex; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.className = 'day-cell empty';
@@ -849,9 +857,10 @@
                 const holidayDesc = holidays[mmdd];
                 const note = dayNotes[dateKey] || '';
                 const hasNote = note.trim().length > 0;
+                const isToday = (dateKey === todayStr);
 
                 const cell = document.createElement('div');
-                cell.className = `day-cell ${holidayDesc ? 'holiday-cell' : ''} ${hasNote ? 'has-note-cell' : ''}`;
+                cell.className = `day-cell ${holidayDesc ? 'holiday-cell' : ''} ${hasNote ? 'has-note-cell' : ''} ${isToday ? 'today-cell' : ''}`;
                 cell.innerHTML = `
                     <span class="day-number">${d}</span>
                     ${holidayDesc ? `<div class="day-badge" title="${holidayDesc}">🎭 ${holidayDesc.split(' ')[0]}</div>` : ''}
