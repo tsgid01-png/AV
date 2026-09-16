@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vavá - Agenda Virtual & Organizador Pessoal</title>
+    <title>Agenda Virtual</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -60,13 +60,18 @@
                 <div class="w-16 h-16 bg-primary-600 text-white rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-primary-500/30 text-2xl font-bold">
                     <i class="fa-solid fa-robot"></i>
                 </div>
-                <h2 class="text-2xl font-bold tracking-tight">Bem-vindo ao Vavá</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Identifique-se para acessar seu organizador pessoal</p>
+                <h2 class="text-2xl font-bold tracking-tight">Identificação de Acesso</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Insira seu usuário e senha para entrar na agenda</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Seu Nome / Apelido</label>
-                    <input type="text" id="loginName" required placeholder="Ex: Rodrigo" 
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Usuário / Nome</label>
+                    <input type="text" id="loginName" required value="Rodrigo" placeholder="Ex: Rodrigo" 
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Senha</label>
+                    <input type="password" id="loginPassword" required placeholder="Sua senha de acesso" 
                         class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                 </div>
                 <div class="flex items-center space-x-2">
@@ -74,7 +79,7 @@
                     <label for="rememberUser" class="text-xs text-slate-600 dark:text-slate-300 cursor-pointer">Lembrar de mim (Entrar automaticamente)</label>
                 </div>
                 <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 rounded-xl transition-all shadow-md shadow-primary-500/20 text-sm">
-                    Acessar Agenda
+                    Confirmar Acesso
                 </button>
             </form>
         </div>
@@ -129,7 +134,7 @@
                     <i class="fa-solid fa-robot text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">Vavá Agenda</h1>
+                    <h1 class="text-xl font-bold tracking-tight">Agenda Virtual</h1>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Olá, <span id="userDisplayName" class="font-semibold text-primary-600 dark:text-primary-400">Usuário</span></p>
                 </div>
             </div>
@@ -253,31 +258,39 @@
         <section class="lg:col-span-1 flex flex-col">
             <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-[750px] sticky top-20">
                 
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center space-x-3">
-                    <div class="relative">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-600 to-indigo-400 flex items-center justify-center text-white font-bold shadow-md">
-                            V
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-600 to-indigo-400 flex items-center justify-center text-white font-bold shadow-md">
+                                T
+                            </div>
+                            <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
                         </div>
-                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                        <div>
+                            <h2 class="font-bold text-sm">Tina</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Assistente Virtual Inteligente</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 class="font-bold text-sm">Vavá</h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Assistente Virtual Inteligente</p>
-                    </div>
+                    <button onclick="toggleVoiceSpeechOutput()" id="speechToggleBtn" title="Ativar/Desativar Resposta por Voz" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-primary-600 dark:text-primary-400 text-xs">
+                        <i class="fa-solid fa-volume-high" id="speechToggleIcon"></i>
+                    </button>
                 </div>
 
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm flex flex-col">
                     <div class="flex items-start space-x-2">
                         <div class="bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl rounded-tl-none max-w-[85%] text-slate-700 dark:text-slate-200">
-                            Olá! Sou o **Vavá**, seu assistente pessoal. Agora com **alarme sonoro contínuo** para compromissos! Como posso ajudar?
+                            Olá! Sou a **Tina**, sua assistente pessoal. Com autenticação, alarme sonoro, suporte a voz (fala e audição) e sincronização ativa! Como posso ajudar?
                         </div>
                     </div>
                 </div>
 
                 <div class="p-3 border-t border-slate-200 dark:border-slate-800">
                     <form onsubmit="handleVavaChat(event)" class="flex gap-2">
-                        <input type="text" id="vavaInput" placeholder="Pergunte sobre feriados, tarefas ou notas..." 
+                        <input type="text" id="vavaInput" placeholder="Pergunte por voz ou texto..." 
                             class="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <button type="button" id="micBtn" onclick="toggleVoiceRecognition()" title="Falar com a Tina" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3.5 py-2.5 rounded-xl transition-all">
+                            <i class="fa-solid fa-microphone" id="micIcon"></i>
+                        </button>
                         <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 rounded-xl transition-all shadow-md shadow-primary-500/20">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
@@ -290,11 +303,11 @@
     </main>
 
     <footer class="py-4 text-center text-xs text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800">
-        Vavá Agenda Virtual &bull; Versão 2026
+        Agenda Virtual &bull; Versão 2026
     </footer>
 
     <script>
-        // Feriados Nacionais Oficiais do Brasil e Datas Históricas Oficiais do Calendário (MM-DD)
+        // Feriados Nacionais Oficiais do Brasil e Datas Históricas Oficiais (MM-DD)
         const specialDates = {
             "01-01": { title: "Confraternização Universal", desc: "Feriado Nacional (Lei nº 662/1949)." },
             "03-25": { title: "Data Magna do Ceará", desc: "Feriado Estadual - Celebração da abolição da escravidão no Ceará em 1884." },
@@ -320,6 +333,11 @@
         // Variáveis do Alarme Contínuo
         let activeAlarmInterval = null;
         let activeAlarmTaskTitle = null;
+
+        // Variáveis de Voz da Tina
+        let recognition = null;
+        let isListening = false;
+        let speechOutputEnabled = true;
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
@@ -400,13 +418,13 @@
                     triggerAlarm(t.title);
 
                     if (Notification.permission === "granted") {
-                        new Notification("Vavá Agenda - Alarme!", { body: `Compromisso: ${t.title}` });
+                        new Notification("Agenda Virtual - Alarme!", { body: `Compromisso: ${t.title}` });
                     }
                 }
             });
         }
 
-        // Gerenciamento de Login e Autenticação
+        // Gerenciamento de Login com Usuário e Senha
         function checkAuth() {
             if (!currentUser) {
                 document.getElementById('loginScreen').classList.remove('hidden');
@@ -418,9 +436,20 @@
         function handleLogin(e) {
             e.preventDefault();
             const name = document.getElementById('loginName').value.trim();
+            const password = document.getElementById('loginPassword').value;
             const remember = document.getElementById('rememberUser').checked;
 
-            if (!name) return;
+            if (!name || !password) return;
+
+            const passKey = 'vava_user_pass_' + name.toLowerCase();
+            const savedPass = localStorage.getItem(passKey);
+
+            if (!savedPass) {
+                localStorage.setItem(passKey, password);
+            } else if (savedPass !== password) {
+                alert('Senha incorreta para o usuário informado.');
+                return;
+            }
 
             currentUser = name;
             document.getElementById('userDisplayName').innerText = currentUser;
@@ -430,6 +459,7 @@
             }
 
             document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('loginPassword').value = '';
         }
 
         function logout() {
@@ -437,7 +467,7 @@
             currentUser = null;
             document.getElementById('settingsModal').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('loginName').value = '';
+            document.getElementById('loginPassword').value = '';
         }
 
         // Configurações de Aparência (Cores e Fontes)
@@ -514,7 +544,7 @@
             }
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
-                    new Notification("Vavá Agenda", { body: "Notificações e alarmes ativados com sucesso!" });
+                    new Notification("Agenda Virtual", { body: "Notificações e alarmes ativados com sucesso!" });
                 } else {
                     alert("Permissão de notificação negada.");
                 }
@@ -801,19 +831,96 @@
             renderCalendar();
         }
 
-        // Assistente Vavá
+        // Funções de Voz (Fala e Escuta) da Tina
+        function toggleVoiceSpeechOutput() {
+            speechOutputEnabled = !speechOutputEnabled;
+            const icon = document.getElementById('speechToggleIcon');
+            if (speechOutputEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            }
+        }
+
+        function speakText(text) {
+            if (!speechOutputEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel(); // Para qualquer fala em andamento
+
+            // Remove marcações markdown básicas para uma leitura mais natural
+            const cleanText = text.replace(/[*_#`[\]()&•]/g, '');
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.05;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Seu navegador não suporta reconhecimento de voz.");
+                return;
+            }
+
+            if (!recognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'pt-BR';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('micIcon').className = 'fa-solid fa-microphone-slash text-red-500 animate-pulse';
+                    document.getElementById('vavaInput').placeholder = 'Ouvindo... Fale agora.';
+                };
+
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    document.getElementById('vavaInput').value = speechResult;
+                    processUserQuery(speechResult);
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Erro no reconhecimento de voz:", event.error);
+                    stopListeningUI();
+                };
+
+                recognition.onend = () => {
+                    stopListeningUI();
+                };
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        function stopListeningUI() {
+            isListening = false;
+            document.getElementById('micIcon').className = 'fa-solid fa-microphone';
+            document.getElementById('vavaInput').placeholder = 'Pergunte por voz ou texto...';
+        }
+
         function handleVavaChat(e) {
             e.preventDefault();
             const input = document.getElementById('vavaInput');
             const query = input.value.trim();
             if (!query) return;
 
-            appendMessage(query, 'user');
             input.value = '';
+            processUserQuery(query);
+        }
+
+        function processUserQuery(query) {
+            appendMessage(query, 'user');
 
             setTimeout(() => {
                 const response = getVavaResponse(query);
                 appendMessage(response, 'vava');
+                speakText(response);
             }, 500);
         }
 
@@ -852,7 +959,7 @@
                 if (foundTask) return `Encontrei a tarefa: "${foundTask.title}" agendada para ${new Date(foundTask.date).toLocaleString('pt-BR')}.`;
                 if (foundNote) return `Encontrei uma nota no diário de ${foundNote.date}: "${foundNote.text}".`;
                 
-                return `Compreendido! Consultei os registros para "${query}". Estou monitorando sua agenda e seus alarmes com base no calendário oficial.`;
+                return `Compreendido! Consultei os registros para "${query}". Estou monitorando sua agenda, alarmes e credenciais com segurança.`;
             }
         }
 
@@ -868,7 +975,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `vava_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.download = `agenda_virtual_backup_${new Date().toISOString().slice(0, 10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
         }
